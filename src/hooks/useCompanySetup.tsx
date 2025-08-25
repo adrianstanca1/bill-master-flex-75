@@ -30,12 +30,21 @@ export function useCompanySetup() {
       // Store company information in user profile using available fields
       const fullName = `${user.user_metadata?.firstName || ''} ${user.user_metadata?.lastName || ''}`.trim();
       
+      // First, check if user already has a company_id (prevent overwriting)
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
           full_name: fullName || user.user_metadata?.full_name,
           email: user.email,
-          phone: data.phone
+          phone: data.phone,
+          // Only set company_id if not already set (immutability constraint)
+          ...(existingProfile?.company_id ? {} : { company_id: crypto.randomUUID() })
         })
         .eq('id', user.id);
 

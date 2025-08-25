@@ -1,163 +1,163 @@
-
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SecurityAlert {
   id: string;
-  type: 'high' | 'medium' | 'low';
-  severity: 'high' | 'medium' | 'low';
-  message: string;
-  timestamp: string;
-  details?: any;
+  action: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  details: Record<string, any>;
+  created_at: string;
+  message?: string;
+  timestamp?: string;
 }
 
 export function useSecurityMonitoring() {
+  const [alerts, setAlerts] = useState<SecurityAlert[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Determine current user's role
-  const { data: profile } = useQuery({
-    queryKey: ['my-profile'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, role, company_id')
-        .eq('id', user.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Monitor for suspicious activity
-  const { data: suspiciousActivity } = useQuery({
-    queryKey: ['suspicious-activity'],
-    queryFn: async () => {
+  const loadSecurityAlerts = useCallback(async () => {
+    try {
       const { data, error } = await supabase
         .from('security_audit_log')
         .select('*')
-        .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString()) // Last hour
-        .order('created_at', { ascending: false });
+        .in('action', [
+          'SUSPICIOUS_ACTIVITY_DETECTED',
+          'COMPANY_ID_CHANGE_BLOCKED',
+          'SELF_ROLE_ESCALATION_BLOCKED',
+          'WEBHOOK_SECURITY_VIOLATION'
+        ])
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (error) throw error;
 
-      // Analyze for suspicious patterns
-      const alerts: SecurityAlert[] = [];
-      
-      // Check for multiple failed operations with safe property access
-      const failedOps = data.filter(log => {
-        // Safely check if details contains error information
-        const details = log.details as any;
-        return (details && typeof details === 'object' && details.error) || log.action === 'FAILED_LOGIN';
-      });
-      
-      if (failedOps.length > 5) {
-        alerts.push({
-          id: 'failed-ops',
-          type: 'high',
-          severity: 'high',
-          message: `${failedOps.length} failed operations detected in the last hour`,
+      const mappedAlerts: SecurityAlert[] = data?.map(log => ({
+        id: log.id,
+        action: log.action,
+        severity: (log.details as any)?.alert_level || 'medium',
+        details: (log.details as Record<string, any>) || {},
+        created_at: log.created_at,
+        message: log.action.replace(/_/g, ' ').toLowerCase(),
+        timestamp: log.created_at
+      })) || [];
+
+      setAlerts(mappedAlerts);
+    } catch (error) {
+      console.error('Failed to load security alerts:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const logSecurityViolation = useCallback(async (
+    action: string,
+    resourceType: string,
+    details: Record<string, any>
+  ) => {
+    try {
+      await supabase.from('security_audit_log').insert({
+        action,
+        resource_type: resourceType,
+        details: {
+          ...details,
           timestamp: new Date().toISOString(),
-          details: { count: failedOps.length }
-        });
-      }
-
-      // Check for unusual deletion activity
-      const deletions = data.filter(log => log.action === 'DELETE');
-      if (deletions.length > 3) {
-        alerts.push({
-          id: 'unusual-deletions',
-          type: 'medium',
-          severity: 'medium',
-          message: `Unusual deletion activity: ${deletions.length} records deleted`,
-          timestamp: new Date().toISOString(),
-          details: { deletions }
-        });
-      }
-
-      // Check for after-hours activity
-      const now = new Date();
-      const afterHours = data.filter(log => {
-        const logTime = new Date(log.created_at);
-        const hour = logTime.getHours();
-        return hour < 6 || hour > 22; // Before 6 AM or after 10 PM
-      });
-
-      if (afterHours.length > 0) {
-        alerts.push({
-          id: 'after-hours',
-          type: 'low',
-          severity: 'low',
-          message: `${afterHours.length} after-hours activities detected`,
-          timestamp: new Date().toISOString(),
-          details: { count: afterHours.length }
-        });
-      }
-
-      return alerts;
-    },
-    refetchInterval: 60000, // Check every minute
-    enabled: !!profile && (profile as any)?.role === 'admin',
-  });
-
-  // Show alerts when detected
-  useEffect(() => {
-    if ((profile as any)?.role === 'admin' && suspiciousActivity && suspiciousActivity.length > 0) {
-      suspiciousActivity.forEach(alert => {
-        if (alert.type === 'high') {
-          toast({
-            title: "Security Alert",
-            description: alert.message,
-            variant: "destructive"
-          });
-        } else if (alert.type === 'medium') {
-          toast({
-            title: "Security Notice",
-            description: alert.message,
-          });
+          user_agent: navigator.userAgent,
+          url: window.location.href
         }
       });
+    } catch (error) {
+      console.error('Failed to log security violation:', error);
     }
-  }, [suspiciousActivity, toast, profile]);
+  }, []);
 
-  // Monitor authentication events
-  const { data: authEvents } = useQuery({
-    queryKey: ['auth-events'],
-    queryFn: async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) throw error;
+  const dismissAlert = useCallback(async (alertId: string) => {
+    try {
+      // Mark alert as acknowledged by updating details
+      const { data: currentAlert } = await supabase
+        .from('security_audit_log')
+        .select('details')
+        .eq('id', alertId)
+        .single();
 
-      // Log successful authentication
-      if (session) {
-        await supabase.from('security_audit_log').insert({
-          user_id: session.user.id,
-          action: 'SESSION_CHECK',
-          resource_type: 'auth',
-          resource_id: session.user.id,
-          details: { 
-            last_sign_in: session.user.last_sign_in_at,
-            user_agent: navigator.userAgent 
-          }
-        });
+      if (currentAlert) {
+        const updatedDetails = {
+          ...(currentAlert.details as Record<string, any>),
+          acknowledged: true,
+          dismissed_at: new Date().toISOString()
+        };
+
+        await supabase
+          .from('security_audit_log')
+          .update({ details: updatedDetails })
+          .eq('id', alertId);
       }
 
-      return session;
-    },
-    refetchInterval: 300000, // Check every 5 minutes
-  });
+      setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+    } catch (error) {
+      console.error('Failed to dismiss alert:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSecurityAlerts();
+
+    // Set up real-time monitoring for new security events
+    const channel = supabase
+      .channel('security-monitoring')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'security_audit_log',
+          filter: 'action.in.(SUSPICIOUS_ACTIVITY_DETECTED,COMPANY_ID_CHANGE_BLOCKED,SELF_ROLE_ESCALATION_BLOCKED,WEBHOOK_SECURITY_VIOLATION)'
+        },
+        (payload) => {
+          const newAlert: SecurityAlert = {
+            id: payload.new.id,
+            action: payload.new.action,
+            severity: (payload.new.details as any)?.alert_level || 'medium',
+            details: (payload.new.details as Record<string, any>) || {},
+            created_at: payload.new.created_at,
+            message: payload.new.action.replace(/_/g, ' ').toLowerCase(),
+            timestamp: payload.new.created_at
+          };
+
+          setAlerts(prev => [newAlert, ...prev]);
+
+          // Show toast for high/critical alerts
+          if (newAlert.severity === 'high' || newAlert.severity === 'critical') {
+            toast({
+              title: "Security Alert",
+              description: `${newAlert.action.replace(/_/g, ' ').toLowerCase()}`,
+              variant: "destructive",
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadSecurityAlerts, toast]);
 
   return {
-    alerts: suspiciousActivity || [],
+    alerts,
+    loading,
+    logSecurityViolation,
+    dismissAlert,
+    reloadAlerts: loadSecurityAlerts,
     stats: {
-      securityEvents: suspiciousActivity?.length || 0,
-      totalAlerts: suspiciousActivity?.length || 0,
-      criticalAlerts: suspiciousActivity?.filter(a => a.severity === 'high').length || 0
-    },
-    suspiciousActivity: suspiciousActivity || [],
-    authEvents,
-    isMonitoring: (profile as any)?.role === 'admin'
+      total: alerts.length,
+      totalAlerts: alerts.length,
+      critical: alerts.filter(a => a.severity === 'critical').length,
+      criticalAlerts: alerts.filter(a => a.severity === 'critical').length,
+      high: alerts.filter(a => a.severity === 'high').length,
+      medium: alerts.filter(a => a.severity === 'medium').length,
+      securityEvents: alerts.length
+    }
   };
 }

@@ -18,15 +18,17 @@ serve(async (req) => {
 
     switch (action) {
       case 'create_secret': {
-        // Generate cryptographically secure secret
-        const secret = crypto.randomUUID() + '-' + Date.now();
+        // Generate cryptographically secure secret for HMAC-SHA256
+        const secretBytes = new Uint8Array(32);
+        crypto.getRandomValues(secretBytes);
+        const secret = Array.from(secretBytes, byte => byte.toString(16).padStart(2, '0')).join('');
 
-        // Store encrypted secret
+        // Store secret (base64 encoded for database storage)
         const { data, error } = await supabase
           .from('webhook_secrets')
           .insert({
             webhook_id: webhookId,
-            encrypted_secret: btoa(secret) // Basic encoding - use proper encryption in production
+            encrypted_secret: btoa(secret) // Store as base64 for retrieval
           });
 
         if (error) throw error;
@@ -67,9 +69,9 @@ serve(async (req) => {
           window_start: rateLimitData?.window_start || new Date().toISOString()
         });
 
-        // Enhanced HMAC signature validation using database function
+        // Enhanced HMAC-SHA256 signature validation using secure database function
         const { data: isValid, error: validationError } = await supabase.rpc(
-          'validate_webhook_signature',
+          'validate_webhook_signature_hmac',
           {
             webhook_id: webhookId,
             payload: JSON.stringify(payload),

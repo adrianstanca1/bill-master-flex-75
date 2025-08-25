@@ -7,6 +7,8 @@ import { SimplifiedSecurityDashboard } from '@/components/SimplifiedSecurityDash
 import { SecurityConfigurationManager } from '@/components/SecurityConfigurationManager';
 import { SecurityEnhancementsPanel } from '@/components/SecurityEnhancementsPanel';
 import { SecurityEnhancedRoleManager } from '@/components/SecurityEnhancedRoleManager';
+import { SecurityFixesStatus } from '@/components/SecurityFixesStatus';
+import { SecurityMonitoringDashboard } from '@/components/SecurityMonitoringDashboard';
 import SEO from '@/components/SEO';
 
 export default function Security() {
@@ -39,6 +41,7 @@ export default function Security() {
           </TabsList>
           
           <TabsContent value="enhancements" className="space-y-6">
+            <SecurityFixesStatus />
             <SecurityEnhancementsPanel />
           </TabsContent>
           
@@ -59,7 +62,7 @@ export default function Security() {
           </TabsContent>
           
           <TabsContent value="monitoring" className="space-y-6">
-            <TemporarySecurityStub />
+            <SecurityMonitoringDashboard />
           </TabsContent>
           
           <TabsContent value="threats" className="space-y-6">
