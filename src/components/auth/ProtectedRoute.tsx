@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from './AuthProvider';
+import { useCompanySetup } from '@/hooks/useCompanySetup';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 interface ProtectedRouteProps {
@@ -10,13 +11,23 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, requireSetup = false }: ProtectedRouteProps) {
   const { user, loading, isAuthenticated } = useAuthContext();
+  const { checkSetupStatus } = useCompanySetup();
   const location = useLocation();
 
   const [isSetupComplete, setIsSetupComplete] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setIsSetupComplete(true); // Simplified - always consider setup complete
-  }, [requireSetup]);
+    const checkSetup = async () => {
+      if (requireSetup && isAuthenticated && user) {
+        const setupComplete = await checkSetupStatus();
+        setIsSetupComplete(setupComplete);
+      } else {
+        setIsSetupComplete(true); // Not requiring setup, so consider complete
+      }
+    };
+
+    checkSetup();
+  }, [requireSetup, isAuthenticated, user, checkSetupStatus]);
 
   if (loading) {
     return (

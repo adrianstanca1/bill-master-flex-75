@@ -216,7 +216,17 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
         });
         
         if (!result.error) {
+          // Show email confirmation and prepare for setup flow
           setShowEmailConfirmation(true);
+          
+          // If user is immediately confirmed (depends on email confirmation settings)
+          if (result.data && !result.data.email_confirmed_at) {
+            // User needs to confirm email first
+            toast({
+              title: "Almost there!",
+              description: "Please check your email and click the confirmation link to complete your registration.",
+            });
+          }
         } else if (result.error.message.includes("User already registered")) {
           toast({
             title: "Account already exists",
