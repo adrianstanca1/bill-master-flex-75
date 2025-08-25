@@ -1,0 +1,131 @@
+openapi: 3.1.0
+info:
+  title: Civix API
+  version: 1.0.0
+  description: API for scheduling tasks, checklists, and automation in construction operations.
+servers:
+  - url: https://api.civix.app/v1
+paths:
+  /projects:
+    post:
+      operationId: createProject
+      summary: Create a new construction project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+      responses:
+        '201':
+          description: Project created
+  /tasks/schedule:
+    post:
+      operationId: scheduleTask
+      summary: Schedule a task (e.g., toolbox talk, MEWP check)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduledTask'
+      responses:
+        '201':
+          description: Task scheduled
+  /checklist-templates:
+    get:
+      operationId: getChecklistTemplates
+      summary: Get all available checklist templates
+      responses:
+        '200':
+          description: Checklist templates returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChecklistTemplate'
+  /task-checklists/submit:
+    post:
+      operationId: submitChecklist
+      summary: Submit a completed checklist for a specific task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmittedChecklist'
+      responses:
+        '200':
+          description: Checklist submitted
+components:
+  schemas:
+    Project:
+      type: object
+      properties:
+        name:
+          type: string
+        location:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        client:
+          type: string
+        projectManagerId:
+          type: string
+    ScheduledTask:
+      type: object
+      properties:
+        projectId:
+          type: string
+        taskName:
+          type: string
+        frequency:
+          type: string
+          enum: [once, daily, weekly, monthly]
+        checklistTemplateId:
+          type: string
+        assignedTo:
+          type: string
+        startDate:
+          type: string
+          format: date
+        time:
+          type: string
+    ChecklistTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              question:
+                type: string
+              type:
+                type: string
+                enum: [yes_no, text, numeric]
+    SubmittedChecklist:
+      type: object
+      properties:
+        taskId:
+          type: string
+        completedBy:
+          type: string
+        responses:
+          type: array
+          items:
+            type: object
+            properties:
+              questionId:
+                type: string
+              response:
+                type: string
