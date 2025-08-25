@@ -6,6 +6,7 @@ import { TemporarySecurityStub } from '@/components/TemporarySecurityStub';
 import { SimplifiedSecurityDashboard } from '@/components/SimplifiedSecurityDashboard';
 import { SecurityConfigurationManager } from '@/components/SecurityConfigurationManager';
 import { SecurityEnhancementsPanel } from '@/components/SecurityEnhancementsPanel';
+import { SecurityEnhancedRoleManager } from '@/components/SecurityEnhancedRoleManager';
 import SEO from '@/components/SEO';
 
 export default function Security() {
@@ -28,6 +29,7 @@ export default function Security() {
         <Tabs defaultValue="enhancements" className="w-full">
           <TabsList>
             <TabsTrigger value="enhancements">Security Enhancements</TabsTrigger>
+            <TabsTrigger value="roles">Role Management</TabsTrigger>
             <TabsTrigger value="configuration">Configuration</TabsTrigger>
             <TabsTrigger value="compliance">Security Compliance</TabsTrigger>
             <TabsTrigger value="dashboard">Security Dashboard</TabsTrigger>
@@ -38,6 +40,10 @@ export default function Security() {
           
           <TabsContent value="enhancements" className="space-y-6">
             <SecurityEnhancementsPanel />
+          </TabsContent>
+          
+          <TabsContent value="roles" className="space-y-6">
+            <SecurityEnhancedRoleManager />
           </TabsContent>
           
           <TabsContent value="configuration" className="space-y-6">
