@@ -12,6 +12,7 @@
     "test": "npm run lint && npm run build"
   },
   "dependencies": {
+    "@11labs/react": "^0.2.0",
     "@capacitor/android": "^7.4.2",
     "@capacitor/cli": "^7.4.2",
     "@capacitor/core": "^7.4.2",

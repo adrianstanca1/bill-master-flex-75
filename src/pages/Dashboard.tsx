@@ -5,9 +5,12 @@ import { ResponsiveLayout } from "@/components/ResponsiveLayout";
 import { EnhancedDashboardGrid } from "@/components/EnhancedDashboardGrid";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { QuickStatsGrid } from "@/components/QuickStatsGrid";
+import { EnhancedKPIGrid } from "@/components/EnhancedKPIGrid";
 import { RemindersWidget } from "@/components/RemindersWidget";
 import { GuestBanner } from "@/components/GuestBanner";
 import { SecurityQuickFix } from "@/components/SecurityQuickFix";
+import { DemoDataManager } from "@/components/DemoDataManager";
+import { StripePaymentManager } from "@/components/StripePaymentManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Activity, Zap } from "lucide-react";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
@@ -57,10 +60,14 @@ const Dashboard: React.FC = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6 mt-6">
+              <EnhancedKPIGrid />
               <EnhancedDashboardGrid />
               
-              <div className="cyber-card p-6 hover-glow">
-                <RemindersWidget />
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="cyber-card p-6 hover-glow">
+                  <RemindersWidget />
+                </div>
+                <DemoDataManager />
               </div>
             </TabsContent>
 
@@ -69,32 +76,36 @@ const Dashboard: React.FC = () => {
             </TabsContent>
 
             <TabsContent value="insights" className="space-y-6 mt-6">
-              <div className="cyber-card p-8 text-center hover-glow">
-                <Zap className="h-16 w-16 mx-auto mb-4 text-purple-600" />
-                <h3 className="text-2xl font-bold mb-2">AI-Powered Insights</h3>
-                <p className="text-muted-foreground mb-6">
-                  Get intelligent recommendations and predictive analytics for your business
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-semibold mb-2">Revenue Optimization</h4>
-                    <p className="text-sm text-muted-foreground">
-                      AI suggests focusing on commercial projects for 15% revenue increase
-                    </p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-semibold mb-2">Risk Assessment</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Weather delays predicted for 2 projects - consider scheduling adjustments
-                    </p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-semibold mb-2">Cost Savings</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Material bulk purchasing could save £12,000 this quarter
-                    </p>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="cyber-card p-8 text-center hover-glow">
+                  <Zap className="h-16 w-16 mx-auto mb-4 text-purple-600" />
+                  <h3 className="text-2xl font-bold mb-2">AI-Powered Insights</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Get intelligent recommendations and predictive analytics for your business
+                  </p>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">Revenue Optimization</h4>
+                      <p className="text-sm text-muted-foreground">
+                        AI suggests focusing on commercial projects for 15% revenue increase
+                      </p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">Risk Assessment</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Weather delays predicted for 2 projects - consider scheduling adjustments
+                      </p>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">Cost Savings</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Material bulk purchasing could save £12,000 this quarter
+                      </p>
+                    </div>
                   </div>
                 </div>
+                
+                <StripePaymentManager />
               </div>
             </TabsContent>
           </Tabs>
