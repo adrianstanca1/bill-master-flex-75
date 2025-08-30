@@ -9,7 +9,7 @@ import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { useToast } from '@/hooks/use-toast';
 
 export function ThreatDetection() {
-  const { alerts, stats } = useSecurityMonitoring();
+  const { alerts } = useSecurityMonitoring();
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
 
@@ -65,15 +65,15 @@ export function ThreatDetection() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{stats.totalAlerts}</div>
+              <div className="text-2xl font-bold text-green-600">{alerts.length}</div>
               <div className="text-sm text-muted-foreground">Total Alerts</div>
             </div>
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-2xl font-bold text-red-600">{stats.criticalAlerts}</div>
+              <div className="text-2xl font-bold text-red-600">{alerts.filter(a => a.severity === 'critical').length}</div>
               <div className="text-sm text-muted-foreground">Critical Threats</div>
             </div>
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{stats.securityEvents}</div>
+              <div className="text-2xl font-bold text-blue-600">{alerts.length}</div>
               <div className="text-sm text-muted-foreground">Security Events</div>
             </div>
           </div>
@@ -87,9 +87,9 @@ export function ThreatDetection() {
                   <AlertDescription>
                     <div className="flex items-center justify-between">
                       <div>
-                        <strong>{alert.message}</strong>
+                        <strong>{alert.action}</strong>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(alert.timestamp).toLocaleString()}
+                          {new Date(alert.created_at).toLocaleString()}
                         </p>
                       </div>
                       <Badge className={getSeverityColor(alert.severity)}>

@@ -13,7 +13,7 @@ export function UserDashboard() {
   const [lastActivity, setLastActivity] = useState<string>('');
   const [sessionStrength, setSessionStrength] = useState<string>('strong');
   
-  const { stats } = useSecurityMonitoring();
+  const { alerts } = useSecurityMonitoring();
   const { systemHealth, runHealthCheck } = useSystemHealth();
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export function UserDashboard() {
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Security Events</label>
-              <p className="text-foreground">{stats?.securityEvents || 0} recent events</p>
+              <p className="text-foreground">{alerts.length} recent events</p>
             </div>
           </CardContent>
         </Card>

@@ -2,8 +2,11 @@
 import React from 'react';
 import { SmartToolsPanel } from '@/components/SmartToolsPanel';
 import { ToolManager } from '@/components/ToolManager';
+import { AdvancedServiceManager } from '@/components/AdvancedServiceManager';
+import { IntelligentToolOrchestrator } from '@/components/IntelligentToolOrchestrator';
+import { EnhancedPerformanceMonitor } from '@/components/EnhancedPerformanceMonitor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wrench, Bot } from 'lucide-react';
+import { Wrench, Bot, Settings, Brain, Activity } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 const Tools: React.FC = () => {
@@ -22,10 +25,22 @@ const Tools: React.FC = () => {
         </div>
 
         <Tabs defaultValue="smart-tools" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="smart-tools" className="flex items-center gap-2">
               <Bot className="h-4 w-4" />
               Smart Tools
+            </TabsTrigger>
+            <TabsTrigger value="orchestrator" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              AI Orchestrator
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Service Manager
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Performance
             </TabsTrigger>
             <TabsTrigger value="tool-manager" className="flex items-center gap-2">
               <Wrench className="h-4 w-4" />
@@ -35,6 +50,18 @@ const Tools: React.FC = () => {
 
           <TabsContent value="smart-tools" className="mt-6">
             <SmartToolsPanel />
+          </TabsContent>
+
+          <TabsContent value="orchestrator" className="mt-6">
+            <IntelligentToolOrchestrator />
+          </TabsContent>
+
+          <TabsContent value="services" className="mt-6">
+            <AdvancedServiceManager />
+          </TabsContent>
+
+          <TabsContent value="performance" className="mt-6">
+            <EnhancedPerformanceMonitor />
           </TabsContent>
 
           <TabsContent value="tool-manager" className="mt-6">
