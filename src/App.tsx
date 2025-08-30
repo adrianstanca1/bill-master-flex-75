@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { SecurityEnhancedProtectedRoute } from "@/components/SecurityEnhancedProtectedRoute";
 import { SecurityEnhancedAuthProvider } from "@/components/SecurityEnhancedAuthProvider";
 import { SecuritySecurityHeaders } from "@/components/SecuritySecurityHeaders";
@@ -55,9 +56,10 @@ function App() {
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <SecurityEnhancedAuthProvider>
-          <SecuritySecurityHeaders />
-          <EnhancedSecurityManager>
+        <AuthProvider>
+          <SecurityEnhancedAuthProvider>
+            <SecuritySecurityHeaders />
+            <EnhancedSecurityManager>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -109,6 +111,7 @@ function App() {
             </Routes>
           </EnhancedSecurityManager>
         </SecurityEnhancedAuthProvider>
+      </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
