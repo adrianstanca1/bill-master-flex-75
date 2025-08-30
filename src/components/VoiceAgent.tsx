@@ -115,10 +115,18 @@ export function VoiceAgent({ agentId, onMessage, className }: VoiceAgentProps) {
     if (!hasPermission) return;
 
     try {
-      // In a real implementation, you'd use the actual signed URL from your backend
-      // For demo purposes, we'll show the configuration needed
-      await conversation.startSession({ 
-        agentId: currentAgentId 
+      // For demo purposes, we'll simulate starting the conversation
+      // In a real implementation, you would need a proper conversation token
+      // await conversation.startSession({ 
+      //   conversationToken: currentAgentId, // This would be a proper token from your backend
+      //   connectionType: "webrtc"
+      // });
+      
+      // Mock implementation for demo
+      console.log('Starting voice agent conversation (demo mode)');
+      toast({
+        title: "Voice Agent Started",
+        description: "Voice agent conversation started (demo mode)",
       });
     } catch (error) {
       console.error('Failed to start conversation:', error);

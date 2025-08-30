@@ -11,6 +11,7 @@ import { GuestBanner } from "@/components/GuestBanner";
 import { SecurityQuickFix } from "@/components/SecurityQuickFix";
 import { DemoDataManager } from "@/components/DemoDataManager";
 import { StripePaymentManager } from "@/components/StripePaymentManager";
+import { AdvancedNotificationCenter } from "@/components/AdvancedNotificationCenter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Activity, Zap } from "lucide-react";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
@@ -28,10 +29,15 @@ const Dashboard: React.FC = () => {
           <SecurityQuickFix />
           
           <div className="cyber-card p-8 hover-glow">
-            <h1 className="text-4xl font-bold text-gradient mb-3">Dashboard</h1>
-            <p className="text-muted-foreground text-lg">
-              Command center for your construction business operations
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-gradient mb-3">Dashboard</h1>
+                <p className="text-muted-foreground text-lg">
+                  Command center for your construction business operations
+                </p>
+              </div>
+              <AdvancedNotificationCenter />
+            </div>
           </div>
 
           <div className="cyber-card p-6 hover-glow">

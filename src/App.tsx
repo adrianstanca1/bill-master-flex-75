@@ -34,6 +34,8 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Policy from "./pages/Policy";
 import Terms from "./pages/Terms";
+import Analytics from "./pages/Analytics";
+import ProjectManagement from "./pages/ProjectManagement";
 
 // Create QueryClient instance outside component to prevent recreation
 const queryClient = new QueryClient({
@@ -224,6 +226,26 @@ function App() {
                     <AppSidebar />
                     <SidebarInset>
                       <Settings />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </ProtectedRoute>
+              } />
+              <Route path="/analytics" element={
+                <ProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Analytics />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </ProtectedRoute>
+              } />
+              <Route path="/project-management" element={
+                <ProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <ProjectManagement />
                     </SidebarInset>
                   </SidebarProvider>
                 </ProtectedRoute>
