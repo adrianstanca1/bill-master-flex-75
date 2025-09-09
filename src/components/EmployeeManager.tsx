@@ -41,7 +41,7 @@ export function EmployeeManager() {
   const [inviteRole, setInviteRole] = useState('member');
   
   const { toast } = useToast();
-  const companyId = useCompanyId();
+  const { companyId, loading: companyLoading } = useCompanyId();
   const queryClient = useQueryClient();
 
   // Fetch company members

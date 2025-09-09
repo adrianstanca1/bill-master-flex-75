@@ -34,7 +34,7 @@ export const ExpenseManager: React.FC = () => {
     project_id: ''
   });
 
-  const companyId = useCompanyId();
+  const { companyId, loading: companyLoading } = useCompanyId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

@@ -33,7 +33,7 @@ export const ClientManagerComplete: React.FC = () => {
     notes: ''
   });
 
-  const companyId = useCompanyId();
+  const { companyId, loading: companyLoading } = useCompanyId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

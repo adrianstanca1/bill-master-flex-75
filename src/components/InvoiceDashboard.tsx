@@ -26,7 +26,7 @@ export function InvoiceDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const companyId = useCompanyId();
+  const { companyId, loading: companyLoading } = useCompanyId();
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices', companyId],

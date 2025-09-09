@@ -9,7 +9,7 @@ import { useCompanyId } from '@/hooks/useCompanyId';
 
 export const MockQuoteTester: React.FC = () => {
   const { toast } = useToast();
-  const companyId = useCompanyId();
+  const { companyId, loading: companyLoading } = useCompanyId();
 
   const [title, setTitle] = useState('Sample Quote');
   const [amount, setAmount] = useState('1250');

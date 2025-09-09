@@ -105,7 +105,7 @@ export function InvoiceGenerator() {
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
   const [defaults, setDefaults] = useState<Partial<FormValues>>(getInitialDefaults());
   const { toast } = useToast();
-  const companyId = useCompanyId();
+  const { companyId, loading: companyLoading } = useCompanyId();
   
   React.useEffect(() => {
     loadDefaults().then(setDefaults);

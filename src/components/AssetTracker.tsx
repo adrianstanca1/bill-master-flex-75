@@ -49,7 +49,7 @@ export function AssetTracker() {
   });
 
   const { toast } = useToast();
-  const companyId = useCompanyId();
+  const { companyId, loading: companyLoading } = useCompanyId();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
