@@ -127,8 +127,8 @@ export function TopNavigation() {
   };
 
   const getUserInitials = () => {
-    if (profile?.full_name) {
-      const names = profile.full_name.split(' ');
+    if (profile?.display_name) {
+      const names = profile.display_name.split(' ');
       return names.length > 1 ? `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase() : names[0].charAt(0).toUpperCase();
     }
     return session?.user?.email?.charAt(0).toUpperCase() || 'U';
@@ -242,7 +242,7 @@ export function TopNavigation() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {profile?.full_name || 'User'}
+                      {profile?.display_name || 'User'}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {session.user?.email}

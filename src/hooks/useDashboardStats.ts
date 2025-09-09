@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyId } from './useCompanyId';
@@ -30,7 +29,7 @@ export const useDashboardStats = (): DashboardStats => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!companyId || !isValidUUID(companyId)) {
+      if (!companyId?.companyId || !isValidUUID(companyId.companyId)) {
         // No valid company context; show empty state without errors
         setStats(prev => ({ ...prev, loading: false, error: null }));
         return;
@@ -43,32 +42,24 @@ export const useDashboardStats = (): DashboardStats => {
         const { data: invoices, error: invoicesError } = await supabase
           .from('invoices')
           .select('*')
-          .eq('company_id', companyId)
+          .eq('company_id', companyId.companyId)
           .order('created_at', { ascending: false });
 
         if (invoicesError) throw invoicesError;
 
-        // Fetch projects
-        const { data: projects, error: projectsError } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('company_id', companyId);
-
-        if (projectsError) throw projectsError;
-
         // Calculate stats
-        const totalRevenue = invoices?.reduce((sum, inv) => sum + Number(inv.total || 0), 0) || 0;
+        const totalRevenue = invoices?.reduce((sum, inv) => sum + Number(inv.amount || 0), 0) || 0;
         const pendingInvoices = invoices?.filter(inv => inv.status === 'issued').length || 0;
         const overdueAmount = invoices?.filter(inv => {
           if (!inv.due_date || inv.status === 'paid') return false;
           return new Date(inv.due_date) < new Date();
-        }).reduce((sum, inv) => sum + Number(inv.total || 0), 0) || 0;
+        }).reduce((sum, inv) => sum + Number(inv.amount || 0), 0) || 0;
 
         setStats({
           totalRevenue,
           pendingInvoices,
           overdueAmount,
-          activeProjects: projects?.length || 0,
+          activeProjects: 0, // Placeholder since projects table doesn't exist
           recentInvoices: invoices?.slice(0, 5) || [],
           loading: false,
           error: null

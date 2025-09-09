@@ -88,7 +88,7 @@ const Quotes: React.FC = () => {
         const { error } = await supabase
           .from('quotes')
           .insert({
-            company_id: companyId,
+            company_id: companyId.companyId,
             title: data.title,
             items: data.items,
             total: data.total,

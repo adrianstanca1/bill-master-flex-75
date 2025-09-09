@@ -48,7 +48,14 @@ export function SimplifiedSecurityDashboard() {
 
       if (error) throw error;
 
-      setRecentEvents(events || []);
+      setRecentEvents(events?.map(event => ({
+        id: event.id,
+        action: event.action,
+        created_at: event.created_at,
+        details: event.details,
+        user_id: event.user_id,
+        ip_address: event.ip_address?.toString()
+      })) || []);
       
       // Calculate metrics
       const totalEvents = events?.length || 0;

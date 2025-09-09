@@ -9,7 +9,13 @@ export function AuthCallbackHandler() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { checkSetupStatus } = useCompanySetup();
+  const { setupCompany, getCompanyData, isLoading } = useCompanySetup();
+
+  // Add missing method for backward compatibility
+  const checkSetupStatus = async () => {
+    const data = await getCompanyData();
+    return !!data?.companyName;
+  };
 
   useEffect(() => {
     const handleAuthCallback = async () => {

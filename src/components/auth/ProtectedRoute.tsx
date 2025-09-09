@@ -11,7 +11,13 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, requireSetup = false }: ProtectedRouteProps) {
   const { user, loading, isAuthenticated } = useAuthContext();
-  const { checkSetupStatus } = useCompanySetup();
+  const { setupCompany, getCompanyData, isLoading } = useCompanySetup();
+
+  // Add missing method for backward compatibility
+  const checkSetupStatus = async () => {
+    const data = await getCompanyData();
+    return !!data?.companyName;
+  };
   const location = useLocation();
 
   const [isSetupComplete, setIsSetupComplete] = useState<boolean | null>(null);
