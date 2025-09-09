@@ -14,577 +14,337 @@ export type Database = {
   }
   public: {
     Tables: {
-      agent_interactions: {
+      Chat: {
         Row: {
-          agent_type: string
-          company_id: string
-          content: Json | null
-          created_at: string
+          createdAt: string
           id: string
-          interaction_type: string
-          status: string | null
-          updated_at: string
-          user_id: string | null
+          title: string
+          userId: string
+          visibility: string
         }
         Insert: {
-          agent_type: string
-          company_id: string
-          content?: Json | null
-          created_at?: string
+          createdAt: string
           id?: string
-          interaction_type: string
-          status?: string | null
-          updated_at?: string
-          user_id?: string | null
+          title: string
+          userId: string
+          visibility?: string
         }
         Update: {
-          agent_type?: string
-          company_id?: string
-          content?: Json | null
-          created_at?: string
+          createdAt?: string
           id?: string
-          interaction_type?: string
-          status?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      asset_tracking: {
-        Row: {
-          asset_name: string
-          asset_type: string
-          company_id: string
-          condition: string | null
-          created_at: string
-          current_location: string | null
-          id: string
-          purchase_cost: number | null
-          purchase_date: string | null
-          serial_number: string | null
-          status: string | null
-          updated_at: string
-        }
-        Insert: {
-          asset_name: string
-          asset_type: string
-          company_id: string
-          condition?: string | null
-          created_at?: string
-          current_location?: string | null
-          id?: string
-          purchase_cost?: number | null
-          purchase_date?: string | null
-          serial_number?: string | null
-          status?: string | null
-          updated_at?: string
-        }
-        Update: {
-          asset_name?: string
-          asset_type?: string
-          company_id?: string
-          condition?: string | null
-          created_at?: string
-          current_location?: string | null
-          id?: string
-          purchase_cost?: number | null
-          purchase_date?: string | null
-          serial_number?: string | null
-          status?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      clients: {
-        Row: {
-          address: string | null
-          company_id: string
-          created_at: string
-          email: string | null
-          id: string
-          name: string
-          notes: string | null
-          phone: string | null
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          company_id: string
-          created_at?: string
-          email?: string | null
-          id?: string
-          name: string
-          notes?: string | null
-          phone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          company_id?: string
-          created_at?: string
-          email?: string | null
-          id?: string
-          name?: string
-          notes?: string | null
-          phone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      dayworks: {
-        Row: {
-          company_id: string
-          created_at: string
-          date: string
-          hourly_rate: number | null
-          hours_worked: number | null
-          id: string
-          project_id: string | null
-          total_cost: number | null
-          updated_at: string
-          work_description: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          date: string
-          hourly_rate?: number | null
-          hours_worked?: number | null
-          id?: string
-          project_id?: string | null
-          total_cost?: number | null
-          updated_at?: string
-          work_description: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          date?: string
-          hourly_rate?: number | null
-          hours_worked?: number | null
-          id?: string
-          project_id?: string | null
-          total_cost?: number | null
-          updated_at?: string
-          work_description?: string
+          title?: string
+          userId?: string
+          visibility?: string
         }
         Relationships: [
           {
-            foreignKeyName: "dayworks_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "Chat_userId_User_id_fk"
+            columns: ["userId"]
             isOneToOne: false
-            referencedRelation: "projects"
+            referencedRelation: "User"
             referencedColumns: ["id"]
           },
         ]
       }
-      employees: {
+      Countries: {
         Row: {
-          company_id: string
           created_at: string
-          department: string | null
-          email: string | null
-          hire_date: string | null
-          id: string
-          name: string
-          phone: string | null
-          position: string | null
-          salary: number | null
-          status: string | null
-          updated_at: string
+          id: number
         }
         Insert: {
-          company_id: string
           created_at?: string
-          department?: string | null
-          email?: string | null
-          hire_date?: string | null
-          id?: string
-          name: string
-          phone?: string | null
-          position?: string | null
-          salary?: number | null
-          status?: string | null
-          updated_at?: string
+          id?: number
         }
         Update: {
-          company_id?: string
           created_at?: string
-          department?: string | null
-          email?: string | null
-          hire_date?: string | null
-          id?: string
-          name?: string
-          phone?: string | null
-          position?: string | null
-          salary?: number | null
-          status?: string | null
-          updated_at?: string
+          id?: number
         }
         Relationships: []
       }
-      expenses: {
+      Document: {
         Row: {
-          amount: number
-          category: string
-          company_id: string
-          created_at: string
-          description: string | null
+          content: string | null
+          createdAt: string
           id: string
-          receipt_url: string | null
-          status: string | null
-          supplier: string | null
-          txn_date: string
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          category: string
-          company_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          receipt_url?: string | null
-          status?: string | null
-          supplier?: string | null
-          txn_date: string
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          category?: string
-          company_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          receipt_url?: string | null
-          status?: string | null
-          supplier?: string | null
-          txn_date?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      invoices: {
-        Row: {
-          client: string
-          company_id: string
-          created_at: string
-          due_date: string
-          id: string
-          items: Json | null
-          meta: Json | null
-          number: string
-          status: string | null
-          total: number
-          updated_at: string
-        }
-        Insert: {
-          client: string
-          company_id: string
-          created_at?: string
-          due_date: string
-          id?: string
-          items?: Json | null
-          meta?: Json | null
-          number: string
-          status?: string | null
-          total: number
-          updated_at?: string
-        }
-        Update: {
-          client?: string
-          company_id?: string
-          created_at?: string
-          due_date?: string
-          id?: string
-          items?: Json | null
-          meta?: Json | null
-          number?: string
-          status?: string | null
-          total?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          company_id: string
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
-          phone: string | null
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          company_id?: string
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          company_id?: string
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      projects: {
-        Row: {
-          budget: number | null
-          company_id: string
-          created_at: string
-          description: string | null
-          end_date: string | null
-          id: string
-          meta: Json | null
-          name: string
-          start_date: string | null
-          status: string | null
-          updated_at: string
-        }
-        Insert: {
-          budget?: number | null
-          company_id: string
-          created_at?: string
-          description?: string | null
-          end_date?: string | null
-          id?: string
-          meta?: Json | null
-          name: string
-          start_date?: string | null
-          status?: string | null
-          updated_at?: string
-        }
-        Update: {
-          budget?: number | null
-          company_id?: string
-          created_at?: string
-          description?: string | null
-          end_date?: string | null
-          id?: string
-          meta?: Json | null
-          name?: string
-          start_date?: string | null
-          status?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      quotes: {
-        Row: {
-          client_email: string | null
-          client_name: string | null
-          company_id: string
-          created_at: string
-          id: string
-          items: Json | null
-          status: string | null
+          text: string
           title: string
-          total: number
-          updated_at: string
-          valid_until: string | null
+          userId: string
         }
         Insert: {
-          client_email?: string | null
-          client_name?: string | null
-          company_id: string
-          created_at?: string
+          content?: string | null
+          createdAt: string
           id?: string
-          items?: Json | null
-          status?: string | null
+          text?: string
           title: string
-          total: number
-          updated_at?: string
-          valid_until?: string | null
+          userId: string
         }
         Update: {
-          client_email?: string | null
-          client_name?: string | null
-          company_id?: string
-          created_at?: string
+          content?: string | null
+          createdAt?: string
           id?: string
-          items?: Json | null
-          status?: string | null
+          text?: string
           title?: string
-          total?: number
-          updated_at?: string
-          valid_until?: string | null
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Document_userId_User_id_fk"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Message: {
+        Row: {
+          chatId: string
+          content: Json
+          createdAt: string
+          id: string
+          role: string
+        }
+        Insert: {
+          chatId: string
+          content: Json
+          createdAt: string
+          id?: string
+          role: string
+        }
+        Update: {
+          chatId?: string
+          content?: Json
+          createdAt?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Message_chatId_Chat_id_fk"
+            columns: ["chatId"]
+            isOneToOne: false
+            referencedRelation: "Chat"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Message_v2: {
+        Row: {
+          attachments: Json
+          chatId: string
+          createdAt: string
+          id: string
+          parts: Json
+          role: string
+        }
+        Insert: {
+          attachments: Json
+          chatId: string
+          createdAt: string
+          id?: string
+          parts: Json
+          role: string
+        }
+        Update: {
+          attachments?: Json
+          chatId?: string
+          createdAt?: string
+          id?: string
+          parts?: Json
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Message_v2_chatId_Chat_id_fk"
+            columns: ["chatId"]
+            isOneToOne: false
+            referencedRelation: "Chat"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Projects: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
         }
         Relationships: []
       }
-      reminders: {
+      Stream: {
         Row: {
-          company_id: string
-          completed: boolean
-          created_at: string
+          chatId: string
+          createdAt: string
+          id: string
+        }
+        Insert: {
+          chatId: string
+          createdAt: string
+          id?: string
+        }
+        Update: {
+          chatId?: string
+          createdAt?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Stream_chatId_Chat_id_fk"
+            columns: ["chatId"]
+            isOneToOne: false
+            referencedRelation: "Chat"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Suggestion: {
+        Row: {
+          createdAt: string
           description: string | null
-          due_date: string
+          documentCreatedAt: string
+          documentId: string
           id: string
-          title: string
-          updated_at: string
-          user_id: string | null
+          isResolved: boolean
+          originalText: string
+          suggestedText: string
+          userId: string
         }
         Insert: {
-          company_id: string
-          completed?: boolean
-          created_at?: string
+          createdAt: string
           description?: string | null
-          due_date: string
+          documentCreatedAt: string
+          documentId: string
           id?: string
-          title: string
-          updated_at?: string
-          user_id?: string | null
+          isResolved?: boolean
+          originalText: string
+          suggestedText: string
+          userId: string
         }
         Update: {
-          company_id?: string
-          completed?: boolean
-          created_at?: string
+          createdAt?: string
           description?: string | null
-          due_date?: string
+          documentCreatedAt?: string
+          documentId?: string
           id?: string
-          title?: string
-          updated_at?: string
-          user_id?: string | null
+          isResolved?: boolean
+          originalText?: string
+          suggestedText?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Suggestion_documentId_documentCreatedAt_Document_id_createdAt_f"
+            columns: ["documentId", "documentCreatedAt"]
+            isOneToOne: false
+            referencedRelation: "Document"
+            referencedColumns: ["id", "createdAt"]
+          },
+          {
+            foreignKeyName: "Suggestion_userId_User_id_fk"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      User: {
+        Row: {
+          email: string
+          id: string
+          password: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          password?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          password?: string | null
         }
         Relationships: []
       }
-      security_audit_log: {
+      Vote: {
         Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          id: string
-          ip_address: unknown | null
-          resource_id: string | null
-          resource_type: string | null
-          user_agent: string | null
-          user_id: string | null
+          chatId: string
+          isUpvoted: boolean
+          messageId: string
         }
         Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          resource_id?: string | null
-          resource_type?: string | null
-          user_agent?: string | null
-          user_id?: string | null
+          chatId: string
+          isUpvoted: boolean
+          messageId: string
         }
         Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          resource_id?: string | null
-          resource_type?: string | null
-          user_agent?: string | null
-          user_id?: string | null
+          chatId?: string
+          isUpvoted?: boolean
+          messageId?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Vote_chatId_Chat_id_fk"
+            columns: ["chatId"]
+            isOneToOne: false
+            referencedRelation: "Chat"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Vote_messageId_Message_id_fk"
+            columns: ["messageId"]
+            isOneToOne: false
+            referencedRelation: "Message"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      site_photos: {
+      Vote_v2: {
         Row: {
-          caption: string | null
-          company_id: string
-          created_at: string
-          id: string
-          project_id: string
-          updated_at: string
-          url: string
+          chatId: string
+          isUpvoted: boolean
+          messageId: string
         }
         Insert: {
-          caption?: string | null
-          company_id: string
-          created_at?: string
-          id?: string
-          project_id: string
-          updated_at?: string
-          url: string
+          chatId: string
+          isUpvoted: boolean
+          messageId: string
         }
         Update: {
-          caption?: string | null
-          company_id?: string
-          created_at?: string
-          id?: string
-          project_id?: string
-          updated_at?: string
-          url?: string
+          chatId?: string
+          isUpvoted?: boolean
+          messageId?: string
         }
-        Relationships: []
-      }
-      timesheets: {
-        Row: {
-          company_id: string
-          created_at: string
-          description: string | null
-          end_time: string | null
-          hours_worked: number | null
-          id: string
-          project_id: string | null
-          start_time: string | null
-          status: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          description?: string | null
-          end_time?: string | null
-          hours_worked?: number | null
-          id?: string
-          project_id?: string | null
-          start_time?: string | null
-          status?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          description?: string | null
-          end_time?: string | null
-          hours_worked?: number | null
-          id?: string
-          project_id?: string | null
-          start_time?: string | null
-          status?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Vote_v2_chatId_Chat_id_fk"
+            columns: ["chatId"]
+            isOneToOne: false
+            referencedRelation: "Chat"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Vote_v2_messageId_Message_v2_id_fk"
+            columns: ["messageId"]
+            isOneToOne: false
+            referencedRelation: "Message_v2"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      enhanced_brute_force_check: {
-        Args: { check_ip?: unknown; check_user_id?: string }
-        Returns: Json
-      }
-      secure_retrieve_data: {
-        Args: { store_key: string }
-        Returns: Json
-      }
-      secure_store_data: {
-        Args: { store_key: string; store_value: Json }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
