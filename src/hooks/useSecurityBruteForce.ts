@@ -11,50 +11,47 @@ export function useSecurityBruteForce() {
     if (!userId) return { isBlocked: false };
 
     try {
-      const { data, error } = await supabase.rpc('enhanced_brute_force_check', {
-        check_user_id: userId,
-        check_ip: null // IP detection would need server-side implementation
-      });
+      // Check recent failed attempts from security audit log
+      const { data: attempts, error } = await supabase
+        .from('security_audit_log')
+        .select('created_at, action')
+        .eq('user_id', userId)
+        .like('action', '%FAILED%')
+        .gte('created_at', new Date(Date.now() - 15 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Brute force check failed:', error);
         return { isBlocked: false };
       }
 
-      const result = data as {
-        user_blocked: boolean;
-        ip_blocked: boolean;
-        block_expires_at: string | null;
-        user_failures: number;
-        ip_failures: number;
-      };
+      const failureCount = attempts?.length || 0;
+      const isBlocked = failureCount >= 5;
 
-      const blocked = result.user_blocked || result.ip_blocked;
-      setIsBlocked(blocked);
+      setIsBlocked(isBlocked);
 
-      if (result.block_expires_at) {
-        setBlockExpiresAt(new Date(result.block_expires_at));
-      }
-
-      if (blocked) {
+      if (isBlocked) {
+        const blockExpiry = new Date(Date.now() + 15 * 60 * 1000);
+        setBlockExpiresAt(blockExpiry);
+        
         toast({
           title: "Account Temporarily Blocked",
           description: "Too many failed attempts. Please try again later.",
           variant: "destructive",
           duration: 10000,
         });
-      } else if (result.user_failures > 3) {
+      } else if (failureCount > 3) {
         toast({
           title: "Security Warning",
-          description: `${result.user_failures} failed attempts detected. Please verify your credentials.`,
+          description: `${failureCount} failed attempts detected. Please verify your credentials.`,
           variant: "destructive",
         });
       }
 
       return { 
-        isBlocked: blocked, 
-        failureCount: result.user_failures,
-        expiresAt: result.block_expires_at ? new Date(result.block_expires_at) : null
+        isBlocked, 
+        failureCount,
+        expiresAt: isBlocked ? new Date(Date.now() + 15 * 60 * 1000) : null
       };
     } catch (error) {
       console.error('Brute force protection error:', error);
@@ -69,7 +66,7 @@ export function useSecurityBruteForce() {
         .insert({
           user_id: userId,
           action: action,
-          resource_type: 'authentication',
+          resource: 'authentication',
           details: {
             timestamp: new Date().toISOString(),
             user_agent: navigator.userAgent

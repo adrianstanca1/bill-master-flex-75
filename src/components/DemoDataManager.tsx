@@ -73,12 +73,7 @@ export function DemoDataManager() {
   };
 
   const handleGenerateDemo = async () => {
-    const options = selectedCategories.reduce((acc, categoryId) => ({
-      ...acc,
-      [categoryId]: true
-    }), {} as Record<string, boolean>);
-
-    await generateDemoData(options);
+    await generateDemoData();
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };

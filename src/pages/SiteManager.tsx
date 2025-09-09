@@ -15,7 +15,7 @@ const SiteManager: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const { data: projects } = await supabase.from('projects').select('id');
+        const { data: projects } = await supabase.from('projects_data').select('id');
         const total = projects?.length || 0;
         setStats({ projects: total, active: 0, pending: 0 });
       } catch (err) {

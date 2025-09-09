@@ -39,7 +39,7 @@ export default function Setup() {
   const [data, setData] = useState<SettingsData>(defaults);
   const [theme, setTheme] = useState<ThemeSettings>(loadTheme());
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const { setupCompany, loading } = useCompanySetup();
+  const { setupCompany, isLoading } = useCompanySetup();
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -109,8 +109,10 @@ export default function Setup() {
       // Set up company in Supabase
       await setupCompany({
         companyName: data.companyName,
-        country: data.country,
-        industry: data.industry
+        industry: data.industry || 'construction',
+        email: data.contactEmail || '',
+        phone: data.phone || '',
+        address: data.address || ''
       });
 
       // Save theme and other settings securely
@@ -243,9 +245,9 @@ export default function Setup() {
           <button 
             className="btn-neon" 
             onClick={save} 
-            disabled={loading || !data.companyName?.trim()}
+            disabled={isLoading || !data.companyName?.trim()}
           >
-            {loading ? "Setting up..." : "Save and continue"}
+            {isLoading ? "Setting up..." : "Save and continue"}
           </button>
         </div>
       </section>

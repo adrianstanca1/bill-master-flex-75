@@ -59,16 +59,19 @@ export function useSecureRoleManagement() {
       // For now, select without role column until it's added to database
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, created_at')
+        .select('id, display_name, created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Add default role to each user
-      const usersWithRoles = data?.map(user => ({
-        ...user,
+      const usersWithRoles = (data || []).map(user => ({
+        id: user.id,
+        full_name: user.display_name || 'Unknown User',
+        email: 'user@example.com',
+        created_at: user.created_at,
         role: 'member' as const
-      })) || [];
+      }));
 
       return { success: true, data: usersWithRoles };
     } catch (error: any) {

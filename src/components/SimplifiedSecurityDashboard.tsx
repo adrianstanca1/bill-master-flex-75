@@ -53,8 +53,7 @@ export function SimplifiedSecurityDashboard() {
         action: event.action,
         created_at: event.created_at,
         details: event.details,
-        user_id: event.user_id,
-        ip_address: event.ip_address?.toString()
+        resource_type: event.resource || 'unknown'
       })) || []);
       
       // Calculate metrics

@@ -14,7 +14,7 @@ const Index = () => {
   useEffect(() => {
     const loadStats = async () => {
       const [projectRes, clientRes] = await Promise.all([
-        supabase.from('projects').select('*', { count: 'exact', head: true }),
+        supabase.from('projects_data').select('*', { count: 'exact', head: true }),
         supabase.from('clients').select('*', { count: 'exact', head: true })
       ]);
       setStats({
