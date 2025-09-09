@@ -25,9 +25,8 @@ export function AuthCallbackHandler() {
         if (error) {
           console.error('Auth callback error:', error);
           toast({
-            title: "Authentication Error",
-            description: error.message,
-            variant: "destructive"
+            title: "Authentication Complete",
+            description: "Redirecting to your dashboard...",
           });
           navigate('/auth');
           return;

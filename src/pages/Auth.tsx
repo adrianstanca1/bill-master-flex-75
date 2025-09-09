@@ -48,8 +48,8 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
     }
   }, [isAuthenticated, authLoading, navigate, redirectTo]);
 
-  // Enhanced OAuth handler with proper error handling
   const handleOAuthProvider = async (provider: 'google' | 'github' | 'apple') => {
+    console.log(`Starting OAuth with ${provider}`);
     setLoading(true);
     setFormErrors({});
     
@@ -63,6 +63,8 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
           description: "Unable to connect with this provider. Please try email/password login instead.",
           variant: "destructive"
         });
+      } else {
+        console.log('OAuth initiated successfully');
       }
     } catch (err) {
       console.error('OAuth error:', err);
@@ -146,11 +148,13 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    console.log(`Submitting auth form in ${mode} mode`);
     
     if (!validateForm()) {
       // Show first validation error
       const firstError = Object.values(formErrors)[0];
       if (firstError) {
+        console.log('Form validation failed:', firstError);
         toast({
           title: "Validation Error",
           description: firstError,
