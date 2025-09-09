@@ -59,8 +59,8 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
       if (error) {
         console.error('OAuth error:', error);
         toast({
-          title: "OAuth Error",
-          description: error.message || "Failed to sign in with OAuth provider. Please try email/password login.",
+          title: "Sign In Failed",
+          description: "Unable to connect with this provider. Please try email/password login instead.",
           variant: "destructive"
         });
       }
@@ -169,8 +169,8 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
 
         if (error) {
           toast({
-            title: "Reset Password Error",
-            description: error.message,
+            title: "Reset Failed",
+            description: "Unable to send reset email. Please check your email address and try again.",
             variant: "destructive"
           });
         } else {
@@ -214,7 +214,7 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
               description: "Please check your email and click the confirmation link to complete your registration.",
             });
           }
-        } else if (result.error.message.includes("User already registered")) {
+        } else if (result.error.message?.includes("User already registered")) {
           toast({
             title: "Account already exists",
             description: "Please sign in to continue.",
@@ -223,7 +223,7 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
         } else {
           toast({
             title: "Sign up failed",
-            description: result.error.message,
+            description: "Unable to create account. Please check your details and try again.",
             variant: "destructive",
           });
         }
@@ -232,7 +232,7 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
         if (result.error) {
           toast({
             title: "Sign in failed",
-            description: result.error.message,
+            description: "Invalid email or password. Please check your credentials and try again.",
             variant: "destructive",
           });
         }
