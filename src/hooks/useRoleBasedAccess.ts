@@ -10,6 +10,7 @@ interface RoleAccessState {
   canManageEmployees: boolean;
   canAccessFinancials: boolean;
   canViewAnalytics: boolean;
+  canViewSalaries: boolean;
 }
 
 export function useRoleBasedAccess(): RoleAccessState {
@@ -119,6 +120,7 @@ export function useRoleBasedAccess(): RoleAccessState {
     isManager,
     canManageEmployees: isManager,
     canAccessFinancials: isManager, // Only managers and admins can access financials
-    canViewAnalytics: isManager     // Only managers and admins can view analytics
+    canViewAnalytics: isManager,    // Only managers and admins can view analytics
+    canViewSalaries: isManager      // Only managers and admins can view salary information
   };
 }

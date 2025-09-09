@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { useRoleBasedAccess } from '@/hooks/useRoleBasedAccess';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Users, 
   Clock, 
@@ -20,7 +22,8 @@ import {
   Award,
   AlertTriangle,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  Shield
 } from 'lucide-react';
 import { EmployeeManager } from '@/components/EmployeeManager';
 import { TimesheetTracker } from '@/components/TimesheetTracker';
@@ -65,6 +68,8 @@ interface LeaveRequest {
 
 export function EnhancedHRModule() {
   const [activeTab, setActiveTab] = useState('overview');
+  const { canViewSalaries, isAdmin, isManager, loading: roleLoading } = useRoleBasedAccess();
+  
   const [employees] = useState<Employee[]>([
     {
       id: '1',
@@ -172,10 +177,22 @@ export function EnhancedHRModule() {
     }
   };
 
-  const totalSalaryBudget = employees.reduce((sum, emp) => sum + emp.salary, 0);
+  const totalSalaryBudget = canViewSalaries ? employees.reduce((sum, emp) => sum + emp.salary, 0) : 0;
   const averagePerformance = employees.reduce((sum, emp) => sum + emp.performance, 0) / employees.length;
   const activeEmployees = employees.filter(emp => emp.status === 'active').length;
   const pendingLeaves = leaveRequests.filter(req => req.status === 'pending').length;
+
+  // Security alert for unauthorized access attempts
+  if (roleLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading permissions...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -194,18 +211,30 @@ export function EnhancedHRModule() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Salary Budget</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">£{totalSalaryBudget.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Annual total
-            </p>
-          </CardContent>
-        </Card>
+        {canViewSalaries ? (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Salary Budget</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">£{totalSalaryBudget.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">
+                Annual total
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Access Restricted</CardTitle>
+              <Shield className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-muted-foreground">Salary information requires manager access</div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -312,7 +341,14 @@ export function EnhancedHRModule() {
                         </div>
                         
                         <div className="text-right space-y-2">
-                          <div className="text-sm font-medium">£{employee.salary.toLocaleString()}/year</div>
+                          {canViewSalaries ? (
+                            <div className="text-sm font-medium">£{employee.salary.toLocaleString()}/year</div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Shield className="h-3 w-3" />
+                              Restricted
+                            </div>
+                          )}
                           <div className="text-sm text-muted-foreground">
                             Started: {new Date(employee.startDate).toLocaleDateString()}
                           </div>
@@ -335,59 +371,78 @@ export function EnhancedHRModule() {
         </TabsContent>
 
         <TabsContent value="payroll" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Payroll Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-medium">Current Payroll Period: January 2024</h4>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Process Payroll
-                  </Button>
-                </div>
-                
-                <div className="space-y-3">
-                  {payrollItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <div className="font-medium">{item.employeeName}</div>
-                        <div className="text-sm text-muted-foreground">{item.period}</div>
+          {canViewSalaries ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Payroll Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Current Payroll Period: January 2024</h4>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Process Payroll
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {payrollItems.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <div className="font-medium">{item.employeeName}</div>
+                          <div className="text-sm text-muted-foreground">{item.period}</div>
+                        </div>
+                        
+                        <div className="grid grid-cols-4 gap-4 text-sm text-right">
+                          <div>
+                            <div className="text-muted-foreground">Base</div>
+                            <div>£{item.baseSalary}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Overtime</div>
+                            <div>£{item.overtime}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Deductions</div>
+                            <div>-£{item.deductions}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Net Pay</div>
+                            <div className="font-bold">£{item.netPay}</div>
+                          </div>
+                        </div>
+                        
+                        <Badge className={getStatusColor(item.status)}>
+                          {item.status}
+                        </Badge>
                       </div>
-                      
-                      <div className="grid grid-cols-4 gap-4 text-sm text-right">
-                        <div>
-                          <div className="text-muted-foreground">Base</div>
-                          <div>£{item.baseSalary}</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Overtime</div>
-                          <div>£{item.overtime}</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Deductions</div>
-                          <div>-£{item.deductions}</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Net Pay</div>
-                          <div className="font-bold">£{item.netPay}</div>
-                        </div>
-                      </div>
-                      
-                      <Badge className={getStatusColor(item.status)}>
-                        {item.status}
-                      </Badge>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Access Restricted
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Alert>
+                  <Shield className="h-4 w-4" />
+                  <AlertDescription>
+                    Payroll information requires manager or admin access. Contact your administrator for permission.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="leave" className="space-y-6">
