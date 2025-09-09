@@ -523,6 +523,33 @@ export type Database = {
         }
         Relationships: []
       }
+      recommended_auth_settings: {
+        Row: {
+          created_at: string | null
+          current_status: string | null
+          description: string | null
+          id: string
+          recommended_value: string
+          setting_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_status?: string | null
+          description?: string | null
+          id?: string
+          recommended_value: string
+          setting_name: string
+        }
+        Update: {
+          created_at?: string | null
+          current_status?: string | null
+          description?: string | null
+          id?: string
+          recommended_value?: string
+          setting_name?: string
+        }
+        Relationships: []
+      }
       security_audit_log: {
         Row: {
           action: string
