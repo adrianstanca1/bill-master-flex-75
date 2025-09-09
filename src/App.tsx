@@ -26,7 +26,7 @@ import Security from "./pages/Security";
 import AuthConfiguration from "./pages/AuthConfiguration";
 import Settings from "./pages/Settings";
 import Setup from "./pages/Setup";
-import Auth from "./pages/Auth";
+import AuthDashboard from "./pages/AuthDashboard";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -58,6 +58,7 @@ function App() {
           <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/dashboard" element={<AuthDashboard />} />
               <Route path="/register" element={<Register />} />
               <Route path="/auth/callback" element={<AuthCallbackHandler />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />

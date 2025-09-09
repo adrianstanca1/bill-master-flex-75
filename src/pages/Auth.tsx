@@ -13,9 +13,12 @@ import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Mail, Loader2, Shield, ArrowLeft, UserPlus, LogIn, KeyRound } from "lucide-react";
+import { Mail, Loader2, Shield, ArrowLeft, UserPlus, LogIn, KeyRound, Sparkles } from "lucide-react";
+import { AuthMethodSelector } from "@/components/auth/AuthMethodSelector";
+import { SessionManager } from "@/components/auth/SessionManager";
 
 export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin" | "signup" | "forgot" }) {
   const { toast } = useToast();
@@ -326,28 +329,45 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
           />
         )}
 
-        <div className="elevated-card p-8 animate-scale-in">
-          {mode !== "forgot" && (
-            <>
-              {/* Enhanced Social Login */}
-              <SocialLoginButtons
-                onOAuthSignIn={handleOAuthProvider}
-                disabled={loading}
-                enabledProviders={enabledProviders}
-              />
+        <Tabs defaultValue="enhanced" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="enhanced" className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Enhanced Auth
+            </TabsTrigger>
+            <TabsTrigger value="traditional">Traditional</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="enhanced" className="mt-6">
+            <AuthMethodSelector 
+              mode={mode === "signup" ? "signup" : "signin"}
+              onModeChange={(newMode) => handleModeSwitch(newMode)}
+            />
+          </TabsContent>
+          
+          <TabsContent value="traditional" className="mt-6">
+            <div className="elevated-card p-8 animate-scale-in">
+              {mode !== "forgot" && (
+                <>
+                  {/* Enhanced Social Login */}
+                  <SocialLoginButtons
+                    onOAuthSignIn={handleOAuthProvider}
+                    disabled={loading}
+                    enabledProviders={enabledProviders}
+                  />
 
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-4 text-muted-foreground font-medium">
-                    Or continue with email
-                  </span>
-                </div>
-              </div>
-            </>
-          )}
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-4 text-muted-foreground font-medium">
+                        Or continue with email
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {mode === "signup" && (
@@ -502,57 +522,66 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
                 </>
               )}
             </Button>
-          </form>
+              </form>
 
-          {/* Navigation Links */}
-          <div className="mt-8 text-center space-y-3 animate-fade-in">
-            {mode === "signin" && (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <button 
-                    onClick={() => handleModeSwitch("signup")}
-                    className="text-primary hover:underline font-medium interactive-link"
-                  >
-                    Create one now
-                  </button>
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  <button 
-                    onClick={() => handleModeSwitch("forgot")}
-                    className="text-primary hover:underline font-medium interactive-link"
-                  >
-                    Forgot your password?
-                  </button>
-                </p>
-              </>
-            )}
-            
-            {mode === "signup" && (
-              <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
-                <button 
-                  onClick={() => handleModeSwitch("signin")}
-                  className="text-primary hover:underline font-medium interactive-link"
-                >
-                  Sign in here
-                </button>
-              </p>
-            )}
-            
-            {mode === "forgot" && (
-              <div className="flex items-center justify-center gap-2">
-                <button 
-                  onClick={() => handleModeSwitch("signin")}
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors interactive-link"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to sign in
-                </button>
+              {/* Navigation Links */}
+              <div className="mt-8 text-center space-y-3 animate-fade-in">
+                {mode === "signin" && (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Don't have an account?{" "}
+                      <button 
+                        onClick={() => handleModeSwitch("signup")}
+                        className="text-primary hover:underline font-medium interactive-link"
+                      >
+                        Create one now
+                      </button>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      <button 
+                        onClick={() => handleModeSwitch("forgot")}
+                        className="text-primary hover:underline font-medium interactive-link"
+                      >
+                        Forgot your password?
+                      </button>
+                    </p>
+                  </>
+                )}
+                
+                {mode === "signup" && (
+                  <p className="text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <button 
+                      onClick={() => handleModeSwitch("signin")}
+                      className="text-primary hover:underline font-medium interactive-link"
+                    >
+                      Sign in here
+                    </button>
+                  </p>
+                )}
+                
+                {mode === "forgot" && (
+                  <div className="flex items-center justify-center gap-2">
+                    <button 
+                      onClick={() => handleModeSwitch("signin")}
+                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors interactive-link"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Back to sign in
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          </TabsContent>
+        </Tabs>
+        
+        {/* Session Management for authenticated users */}
+        {isAuthenticated && (
+          <div className="mt-8">
+            <SessionManager />
           </div>
-        </div>
+        )}
       </main>
     </>
   );
