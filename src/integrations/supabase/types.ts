@@ -435,14 +435,17 @@ export type Database = {
       }
       Projects: {
         Row: {
+          company_id: string
           created_at: string
           id: number
         }
         Insert: {
+          company_id: string
           created_at?: string
           id?: number
         }
         Update: {
+          company_id?: string
           created_at?: string
           id?: number
         }
