@@ -34,6 +34,7 @@ import Policy from "./pages/Policy";
 import Terms from "./pages/Terms";
 import Analytics from "./pages/Analytics";
 import ProjectManagement from "./pages/ProjectManagement";
+import MobilePreview from "./pages/MobilePreview";
 
 // Create QueryClient instance outside component to prevent recreation
 const queryClient = new QueryClient({
@@ -189,6 +190,7 @@ function App() {
               } />
               
               {/* Routes without sidebar */}
+              <Route path="/preview" element={<MobilePreview />} />
               <Route path="/policy" element={<Policy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="*" element={<NotFound />} />

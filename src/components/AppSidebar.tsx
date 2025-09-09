@@ -33,6 +33,7 @@ import {
   Camera,
   Clock,
   Lock,
+  Smartphone,
 } from "lucide-react";
 
 const navigationItems = [
@@ -76,6 +77,12 @@ const navigationItems = [
       { title: "Security", url: "/security", icon: Shield },
       { title: "Auth Config", url: "/auth-config", icon: Lock },
       { title: "Settings", url: "/settings", icon: Settings },
+    ],
+  },
+  {
+    title: "Developer",
+    items: [
+      { title: "Mobile Preview", url: "/preview", icon: Smartphone },
     ],
   },
 ];
