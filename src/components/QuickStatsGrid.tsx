@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign, Clock, FileText, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, FileText } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyId } from '@/hooks/useCompanyId';
@@ -17,53 +16,35 @@ interface StatCard {
 export function QuickStatsGrid() {
   const companyId = useCompanyId();
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['dashboard-stats', companyId],
+  const { data: quotesData, isLoading: quotesLoading } = useQuery({
+    queryKey: ['quotes', companyId?.companyId],
     queryFn: async () => {
-      if (!companyId) return null;
-
-      // Fetch quotes
-      const { data: quotes } = await supabase
+      if (!companyId?.companyId) return [];
+      const { data, error } = await supabase
         .from('quotes')
-        .select('total, status, created_at')
-        .eq('company_id', companyId);
-
-      // Fetch invoices
-      const { data: invoices } = await supabase
-        .from('invoices')
-        .select('total, status, created_at')
-        .eq('company_id', companyId);
-
-      // Fetch timesheets for this month
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-
-      const { data: timesheets } = await supabase
-        .from('timesheets')
-        .select('start_time, end_time, status')
-        .eq('company_id', companyId)
-        .gte('start_time', startOfMonth.toISOString());
-
-      // Fetch overdue reminders
-      const { data: reminders } = await supabase
-        .from('reminders')
-        .select('due_date, completed')
-        .eq('company_id', companyId)
-        .eq('completed', false)
-        .lt('due_date', new Date().toISOString());
-
-      return {
-        quotes: quotes || [],
-        invoices: invoices || [],
-        timesheets: timesheets || [],
-        overdueReminders: reminders || [],
-      };
+        .select('total')
+        .eq('company_id', companyId.companyId);
+      if (error) throw error;
+      return data;
     },
-    enabled: !!companyId,
+    enabled: !!companyId?.companyId,
   });
 
-  if (!companyId) {
+  const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
+    queryKey: ['invoices', companyId?.companyId],
+    queryFn: async () => {
+      if (!companyId?.companyId) return [];
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('amount, status')
+        .eq('company_id', companyId.companyId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId?.companyId,
+  });
+
+  if (!companyId?.companyId) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
@@ -79,7 +60,7 @@ export function QuickStatsGrid() {
     );
   }
 
-  if (isLoading) {
+  if (quotesLoading || invoicesLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
@@ -96,42 +77,33 @@ export function QuickStatsGrid() {
     );
   }
 
-  const totalQuoteValue = stats?.quotes.reduce((sum, q) => sum + (q.total || 0), 0) || 0;
-  const totalInvoiceValue = stats?.invoices.reduce((sum, i) => sum + (i.total || 0), 0) || 0;
-  
-  const monthlyHours = stats?.timesheets.reduce((sum, ts) => {
-    if (ts.start_time && ts.end_time) {
-      const start = new Date(ts.start_time);
-      const end = new Date(ts.end_time);
-      return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    }
-    return sum;
-  }, 0) || 0;
+  const totalQuoteValue = quotesData?.reduce((sum, q) => sum + (q.total || 0), 0) || 0;
+  const totalInvoiceValue = invoicesData?.reduce((sum, i) => sum + (i.amount || 0), 0) || 0;
 
   const statsCards: StatCard[] = [
     {
       title: 'Total Quote Value',
       value: `£${totalQuoteValue.toLocaleString()}`,
       icon: <FileText className="h-4 w-4" />,
-      change: stats?.quotes.length ? `${stats.quotes.length} quotes` : '0 quotes',
+      change: quotesData?.length ? `${quotesData.length} quotes` : '0 quotes',
     },
     {
       title: 'Invoice Revenue',
       value: `£${totalInvoiceValue.toLocaleString()}`,
       icon: <DollarSign className="h-4 w-4" />,
-      change: stats?.invoices.length ? `${stats.invoices.length} invoices` : '0 invoices',
+      change: invoicesData?.length ? `${invoicesData.length} invoices` : '0 invoices',
     },
     {
       title: 'Hours This Month',
-      value: `${monthlyHours.toFixed(1)}h`,
-      icon: <Clock className="h-4 w-4" />,
-      change: `${stats?.timesheets.length || 0} sessions`,
+      value: '0h',
+      icon: <DollarSign className="h-4 w-4" />,
+      change: 'Feature coming soon',
     },
     {
       title: 'Overdue Items',
-      value: `${stats?.overdueReminders.length || 0}`,
-      icon: <AlertTriangle className="h-4 w-4" />,
-      trend: (stats?.overdueReminders.length || 0) > 0 ? 'down' : 'neutral',
+      value: '0',
+      icon: <FileText className="h-4 w-4" />,
+      change: 'Feature coming soon',
     },
   ];
 

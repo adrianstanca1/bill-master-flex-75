@@ -77,13 +77,13 @@ export function QuoteGenerator() {
 
   // Fetch existing quotes
   const { data: quotes, isLoading } = useQuery({
-    queryKey: ['quotes', companyId],
+    queryKey: ['quotes', companyId?.companyId],
     queryFn: async () => {
-      if (!companyId) return [];
+      if (!companyId?.companyId) return [];
       const { data, error } = await supabase
         .from('quotes')
         .select('*')
-        .eq('company_id', companyId)
+        .eq('company_id', companyId.companyId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Quote[];
@@ -119,7 +119,7 @@ export function QuoteGenerator() {
   // Create quote mutation
   const createQuoteMutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      if (!companyId) throw new Error('No company ID');
+      if (!companyId?.companyId) throw new Error('No company ID');
       
       const total = calculateTotal();
       const subtotal = total / 1.2;
@@ -129,7 +129,7 @@ export function QuoteGenerator() {
       const { data: quote, error } = await supabase
         .from('quotes')
         .insert({
-          company_id: companyId,
+          company_id: companyId.companyId,
           title: `Quote for ${data.client_name}`,
           items: data.items,
           total,
