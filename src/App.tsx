@@ -103,6 +103,96 @@ function App() {
                   </SidebarProvider>
                 </SecurityEnhancedProtectedRoute>
               } />
+              <Route path="/agents" element={
+                <SecurityEnhancedProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Agents />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
+              <Route path="/tools" element={
+                <SecurityEnhancedProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Tools />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
+              <Route path="/quotes" element={
+                <SecurityEnhancedProtectedRoute requireSetup requiresFinancialAccess>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Quotes />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
+              <Route path="/expenses" element={
+                <SecurityEnhancedProtectedRoute requireSetup requiresFinancialAccess>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Expenses />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
+              <Route path="/projects" element={
+                <SecurityEnhancedProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Projects />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
+              <Route path="/analytics" element={
+                <SecurityEnhancedProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Analytics />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
+              <Route path="/hr" element={
+                <SecurityEnhancedProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <HR />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
+              <Route path="/crm" element={
+                <SecurityEnhancedProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <CRM />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <SecurityEnhancedProtectedRoute requireSetup>
+                  <SidebarProvider>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Settings />
+                    </SidebarInset>
+                  </SidebarProvider>
+                </SecurityEnhancedProtectedRoute>
+              } />
               
               {/* Routes without sidebar */}
               <Route path="/policy" element={<Policy />} />

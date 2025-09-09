@@ -6,7 +6,9 @@ import { VoiceAgent } from "@/components/VoiceAgent";
 import { VoiceAgentConfig } from "@/components/VoiceAgentConfig";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, Mic, Zap, Settings } from "lucide-react";
+import { Bot, Mic, Zap, Settings, Workflow, Sparkles } from "lucide-react";
+import { AgentWorkflowManager } from "@/components/AgentWorkflowManager";
+import { AIAssistantHub } from "@/components/AIAssistantHub";
 
 
 
@@ -33,10 +35,18 @@ const Agents: React.FC = () => {
           </div>
 
           <Tabs defaultValue="dashboard" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
                 <Bot className="h-4 w-4" />
                 Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="ai-hub" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                AI Hub
+              </TabsTrigger>
+              <TabsTrigger value="workflows" className="flex items-center gap-2">
+                <Workflow className="h-4 w-4" />
+                Workflows
               </TabsTrigger>
               <TabsTrigger value="voice" className="flex items-center gap-2">
                 <Mic className="h-4 w-4" />
@@ -54,6 +64,14 @@ const Agents: React.FC = () => {
 
             <TabsContent value="dashboard" className="space-y-6">
               <EnhancedAgentsDashboard />
+            </TabsContent>
+
+            <TabsContent value="ai-hub" className="space-y-6">
+              <AIAssistantHub />
+            </TabsContent>
+
+            <TabsContent value="workflows" className="space-y-6">
+              <AgentWorkflowManager />
             </TabsContent>
 
             <TabsContent value="voice" className="space-y-6">
