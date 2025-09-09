@@ -8,6 +8,8 @@ import { SecurityConfigurationManager } from '@/components/SecurityConfiguration
 import { SecurityEnhancementsPanel } from '@/components/SecurityEnhancementsPanel';
 import { SecurityEnhancedRoleManager } from '@/components/SecurityEnhancedRoleManager';
 import { SecurityFixesStatus } from '@/components/SecurityFixesStatus';
+import { SecurityFixesImplemented } from '@/components/SecurityFixesImplemented';
+import { SecurityHeaders } from '@/components/SecurityHeaders';
 import { SecurityMonitoringDashboard } from '@/components/SecurityMonitoringDashboard';
 import SEO from '@/components/SEO';
 
@@ -28,20 +30,28 @@ export default function Security() {
           </p>
         </div>
 
-        <Tabs defaultValue="enhancements" className="w-full">
+        <Tabs defaultValue="fixes" className="w-full">
           <TabsList>
-            <TabsTrigger value="enhancements">Security Enhancements</TabsTrigger>
+            <TabsTrigger value="fixes">Security Fixes</TabsTrigger>
+            <TabsTrigger value="headers">Security Headers</TabsTrigger>
+            <TabsTrigger value="enhancements">Enhancements</TabsTrigger>
             <TabsTrigger value="roles">Role Management</TabsTrigger>
             <TabsTrigger value="configuration">Configuration</TabsTrigger>
-            <TabsTrigger value="compliance">Security Compliance</TabsTrigger>
-            <TabsTrigger value="dashboard">Security Dashboard</TabsTrigger>
-            <TabsTrigger value="monitoring">Live Monitoring</TabsTrigger>
-            <TabsTrigger value="threats">Threat Detection</TabsTrigger>
-            <TabsTrigger value="policies">Security Policies</TabsTrigger>
+            <TabsTrigger value="compliance">Compliance</TabsTrigger>
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="enhancements" className="space-y-6">
+          <TabsContent value="fixes" className="space-y-6">
+            <SecurityFixesImplemented />
             <SecurityFixesStatus />
+          </TabsContent>
+
+          <TabsContent value="headers" className="space-y-6">
+            <SecurityHeaders />
+          </TabsContent>
+          
+          <TabsContent value="enhancements" className="space-y-6">
             <SecurityEnhancementsPanel />
           </TabsContent>
           
@@ -63,14 +73,6 @@ export default function Security() {
           
           <TabsContent value="monitoring" className="space-y-6">
             <SecurityMonitoringDashboard />
-          </TabsContent>
-          
-          <TabsContent value="threats" className="space-y-6">
-            <TemporarySecurityStub />
-          </TabsContent>
-          
-          <TabsContent value="policies" className="space-y-6">
-            <SecurityConfigurationManager />
           </TabsContent>
         </Tabs>
       </div>
