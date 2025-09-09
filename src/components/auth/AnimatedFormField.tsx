@@ -121,18 +121,6 @@ export function AnimatedFormField({
         </p>
       )}
       
-      {/* Floating label effect */}
-      {!icon && (
-        <div className={cn(
-          "absolute left-4 transition-all duration-200 pointer-events-none",
-          "text-muted-foreground select-none",
-          isFocused || hasValue 
-            ? "top-2 text-xs text-primary opacity-75" 
-            : "top-1/2 transform -translate-y-1/2 text-sm"
-        )}>
-          {!isFocused && !hasValue && placeholder}
-        </div>
-      )}
     </div>
   );
 }

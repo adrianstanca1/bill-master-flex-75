@@ -316,11 +316,27 @@
 
   /* Color utilities for success and warning */
   .text-success-green {
-    color: hsl(142.1 76.2% 36.3%);
+    color: hsl(var(--success-green));
   }
 
   .text-warning-amber {
-    color: hsl(24.6 95% 53.1%);
+    color: hsl(var(--warning-amber));
+  }
+  
+  .bg-success-green\/10 {
+    background-color: hsl(var(--success-green) / 0.1);
+  }
+  
+  .bg-warning-amber\/10 {
+    background-color: hsl(var(--warning-amber) / 0.1);
+  }
+  
+  .border-success-green\/20 {
+    border-color: hsl(var(--success-green) / 0.2);
+  }
+  
+  .border-warning-amber\/20 {
+    border-color: hsl(var(--warning-amber) / 0.2);
   }
 
   /* Professional Hover Effects */
@@ -344,6 +360,22 @@
   /* Focus States */
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+
+  /* Enhanced form animations */
+  .animate-slide-up {
+    animation: slide-up 0.2s ease-out;
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 

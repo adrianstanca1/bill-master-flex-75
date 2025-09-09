@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { Mail, Loader2, Shield, ArrowLeft, UserPlus, LogIn, KeyRound } from "lucide-react";
 
 export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin" | "signup" | "forgot" }) {
@@ -98,65 +99,65 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
     }
   };
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    
+// Consolidated form validation
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
     if (!email.trim()) {
-      toast({ 
-        title: "Email required", 
-        description: "Please enter your email address.", 
-        variant: "destructive" 
-      });
-      return;
+      errors.email = "Email address is required";
     }
 
-    // Enhanced password validation for signup
-    if (mode === 'signup') {
-      if (!password) {
-        toast({
-          title: "Password required",
-          description: "Please enter a password.",
-          variant: "destructive"
-        });
-        return;
+    if (mode === "forgot") {
+      setFormErrors(errors);
+      return Object.keys(errors).length === 0;
+    }
+
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (mode === "signup") {
+      if (!isPasswordValid) {
+        errors.password = "Password must meet all security requirements";
+      }
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters long";
+    }
+
+    if (mode === "signup") {
+      if (!firstName?.trim()) {
+        errors.firstName = "First name is required";
+      }
+      
+      if (!lastName?.trim()) {
+        errors.lastName = "Last name is required";
       }
 
-      const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
-      if (password.length < 12 || !passwordPattern.test(password)) {
-        toast({
-          title: "Password Requirements",
-          description: "Password must be at least 12 characters with uppercase, lowercase, number, and special character (@$!%*?&)",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (!firstName?.trim() || !lastName?.trim()) {
-        toast({
-          title: "Name required",
-          description: "Please enter your first and last name.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        toast({
-          title: "Passwords don't match",
-          description: "Please make sure your passwords match.",
-          variant: "destructive"
-        });
-        return;
+      if (password && confirmPassword && password !== confirmPassword) {
+        errors.confirmPassword = "Passwords don't match";
       }
 
       if (!acceptTerms) {
+        errors.terms = "You must accept the terms and conditions";
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      // Show first validation error
+      const firstError = Object.values(formErrors)[0];
+      if (firstError) {
         toast({
-          title: "Terms required",
-          description: "Please accept the terms and conditions.",
+          title: "Validation Error",
+          description: firstError,
           variant: "destructive"
         });
-        return;
       }
+      return;
     }
 
     if (mode === "forgot") {
@@ -189,53 +190,6 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
         setLoading(false);
       }
       return;
-    }
-
-    if (!password) {
-      toast({ 
-        title: "Password required", 
-        description: "Please enter your password.", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({ 
-        title: "Password too short", 
-        description: "Password must be at least 6 characters long.", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
-    if (mode === "signup") {
-      if (!firstName.trim() || !lastName.trim()) {
-        toast({
-          title: "Name required",
-          description: "Please enter your first and last name.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        toast({
-          title: "Passwords don't match",
-          description: "Please make sure your passwords match.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (!acceptTerms) {
-        toast({
-          title: "Terms required",
-          description: "Please accept the terms and conditions.",
-          variant: "destructive"
-        });
-        return;
-      }
     }
 
     setLoading(true);
@@ -480,26 +434,36 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
                     id="terms"
                     checked={acceptTerms}
                     onCheckedChange={(checked) => setAcceptTerms(checked === true)}
-                    className="mt-1"
+                    className={cn(
+                      "mt-1",
+                      formErrors.terms && "border-destructive"
+                    )}
                   />
-                  <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
-                    I agree to the{" "}
-                    <button
-                      type="button"
-                      onClick={() => navigate("/terms")}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      Terms of Service
-                    </button>{" "}
-                    and{" "}
-                    <button
-                      type="button"
-                      onClick={() => navigate("/policy")}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      Privacy Policy
-                    </button>
-                  </label>
+                  <div className="space-y-1">
+                    <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
+                      I agree to the{" "}
+                      <button
+                        type="button"
+                        onClick={() => navigate("/terms")}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Terms of Service
+                      </button>{" "}
+                      and{" "}
+                      <button
+                        type="button"
+                        onClick={() => navigate("/policy")}
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Privacy Policy
+                      </button>
+                    </label>
+                    {formErrors.terms && (
+                      <p className="text-sm text-destructive animate-slide-up">
+                        {formErrors.terms}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 
                 <EnhancedSecurityFeatures
@@ -516,8 +480,8 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
             <Button
               type="submit"
               size="lg"
-              className="w-full h-12 font-medium animate-fade-in"
-              disabled={loading || (mode === "signup" && !isPasswordValid)}
+              className="w-full h-12 font-medium animate-fade-in bg-gradient-primary hover:shadow-lg hover:shadow-primary/25 transition-all duration-200"
+              disabled={loading || (mode === "signup" && (!isPasswordValid || !acceptTerms))}
             >
               {loading ? (
                 <>
