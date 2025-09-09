@@ -545,6 +545,14 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
                         Forgot your password?
                       </button>
                     </p>
+                    <p className="text-sm text-muted-foreground">
+                      <button 
+                        onClick={() => navigate('/auth/recovery')}
+                        className="text-muted-foreground hover:text-primary hover:underline transition-colors"
+                      >
+                        Need help accessing your account?
+                      </button>
+                    </p>
                   </>
                 )}
                 
@@ -561,14 +569,22 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
                 )}
                 
                 {mode === "forgot" && (
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="text-center space-y-2">
                     <button 
                       onClick={() => handleModeSwitch("signin")}
-                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors interactive-link"
+                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors interactive-link mx-auto"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Back to sign in
                     </button>
+                    <p className="text-sm text-muted-foreground">
+                      <button 
+                        onClick={() => navigate('/auth/recovery')}
+                        className="text-muted-foreground hover:text-primary hover:underline transition-colors"
+                      >
+                        Try other recovery methods
+                      </button>
+                    </p>
                   </div>
                 )}
               </div>

@@ -30,6 +30,8 @@ import Auth from "./pages/Auth";
 import AuthDashboard from "./pages/AuthDashboard";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
+import EmailVerification from "./pages/EmailVerification";
+import AccountRecovery from "./pages/AccountRecovery";
 import NotFound from "./pages/NotFound";
 import Policy from "./pages/Policy";
 import Terms from "./pages/Terms";
@@ -63,6 +65,8 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/auth/callback" element={<AuthCallbackHandler />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/verify-email" element={<EmailVerification />} />
+              <Route path="/auth/recovery" element={<AccountRecovery />} />
               <Route path="/setup" element={
                 <ProtectedRoute>
                   <Setup />
