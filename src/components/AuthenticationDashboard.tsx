@@ -39,29 +39,18 @@ interface SecurityAlert {
 export function AuthenticationDashboard() {
   const [securityScore, setSecurityScore] = useState(85);
 
-  // Fetch authentication metrics (disabled until types are updated)
+  // Mock authentication metrics (until types are updated)
   const authMetrics = [
-    { action: 'LOGIN_SUCCESS', created_at: new Date().toISOString() },
-    { action: 'LOGIN_SUCCESS', created_at: new Date(Date.now() - 3600000).toISOString() },
+    { action: 'USER_SIGNIN_SUCCESS', created_at: new Date().toISOString() },
+    { action: 'USER_SIGNIN_SUCCESS', created_at: new Date(Date.now() - 3600000).toISOString() },
+    { action: 'USER_SIGNUP_SUCCESS', created_at: new Date(Date.now() - 7200000).toISOString() },
   ];
 
-  // Fetch security alerts
-  const { data: securityAlerts } = useQuery({
-    queryKey: ['security-alerts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('security_audit_log')
-        .select('*')
-        .in('action', ['LOGIN_FAILED', 'SECURITY_VIOLATION', 'UNAUTHORIZED_ACCESS'])
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data;
-    },
-    refetchInterval: 30000 // Refetch every 30 seconds
-  });
+  // Mock security alerts data
+  const securityAlerts = [
+    { id: '1', action: 'LOGIN_FAILED', created_at: new Date(Date.now() - 300000).toISOString() },
+    { id: '2', action: 'SECURITY_VIOLATION', created_at: new Date(Date.now() - 1800000).toISOString() },
+  ];
 
   const securityMetrics: SecurityMetric[] = [
     {
