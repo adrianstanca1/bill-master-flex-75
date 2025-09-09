@@ -749,12 +749,58 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      employees_public: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          id: string | null
+          name: string | null
+          position: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          position?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          position?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_employee_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          company_id: string
+          created_at: string
+          email: string
+          employee_position: string
+          has_sensitive_access: boolean
+          hire_date: string
+          id: string
+          name: string
+          phone: string
+          salary: number
+          status: string
+          updated_at: string
+        }[]
       }
       get_user_company_id: {
         Args: Record<PropertyKey, never>
