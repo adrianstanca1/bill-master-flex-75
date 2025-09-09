@@ -749,36 +749,7 @@ export type Database = {
       }
     }
     Views: {
-      employees_public: {
-        Row: {
-          company_id: string | null
-          created_at: string | null
-          id: string | null
-          name: string | null
-          position: string | null
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          company_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-          position?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          company_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-          position?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_current_user_role: {

@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyId } from '@/hooks/useCompanyId';
 import { useToast } from '@/hooks/use-toast';
+import { useSecureEmployees, hasSensitiveAccess, getEmployeeDisplayData } from '@/hooks/useSecureEmployees';
 import { 
   Users, 
   UserPlus, 
@@ -22,6 +23,7 @@ import {
   Plus
 } from 'lucide-react';
 import { validateAndSanitizeField } from '@/lib/sanitization';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Employee {
   id: string;
@@ -29,9 +31,13 @@ interface Employee {
   name: string;
   email?: string;
   phone?: string;
-  position?: string;
-  department?: string;
+  employee_position?: string;
+  salary?: number;
+  hire_date?: string;
+  status?: string;
   created_at: string;
+  updated_at: string;
+  has_sensitive_access: boolean;
 }
 
 export function EmployeeManager() {
@@ -44,20 +50,8 @@ export function EmployeeManager() {
   const { companyId, loading: companyLoading } = useCompanyId();
   const queryClient = useQueryClient();
 
-  // Fetch company members
-  const { data: employees = [], isLoading } = useQuery({
-    queryKey: ['employees', companyId],
-    queryFn: async () => {
-      if (!companyId) return [];
-      const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('company_id', companyId);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!companyId,
-  });
+  // Use secure employee data fetching
+  const { data: employees = [], isLoading } = useSecureEmployees();
 
   // Real-time subscription
   useEffect(() => {
@@ -114,7 +108,7 @@ export function EmployeeManager() {
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
       const { data, error } = await supabase
         .from('employees')
-        .update({ position: role })
+        .update({ "position": role })
         .eq('id', userId)
         .eq('company_id', companyId)
         .select()
@@ -255,6 +249,16 @@ export function EmployeeManager() {
           </Button>
         </div>
         
+        {/* Security Alert */}
+        {employees.length > 0 && !hasSensitiveAccess(employees) && (
+          <Alert className="mt-4">
+            <Shield className="h-4 w-4" />
+            <AlertDescription>
+              You have limited access to employee data. Contact your administrator to view sensitive information like salaries and contact details.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -272,53 +276,64 @@ export function EmployeeManager() {
           <div className="text-center py-8">Loading employees...</div>
         ) : filteredEmployees.length > 0 ? (
           <div className="space-y-4">
-            {filteredEmployees.map((employee) => (
-              <div key={employee.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>{getInitials(employee)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold">
-                        {employee.name || 'Unknown User'}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        {employee.phone && (
+            {filteredEmployees.map((employee) => {
+              const displayData = getEmployeeDisplayData(employee);
+              return (
+                <div key={employee.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{getInitials(employee)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold">
+                          {employee.name || 'Unknown User'}
+                        </h3>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          {displayData.phone && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              {displayData.phone}
+                            </div>
+                          )}
+                          {!displayData.canViewSensitive && (
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <Shield className="h-3 w-3" />
+                              Limited access
+                            </div>
+                          )}
                           <div className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
-                            {employee.phone}
+                            <Clock className="h-3 w-3" />
+                            Joined {new Date(employee.created_at).toLocaleDateString()}
                           </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          Joined {new Date(employee.created_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getRoleColor(employee.position || 'member')}>
-                      {employee.position || 'member'}
-                    </Badge>
-                    <Select 
-                      value={employee.position || 'member'} 
-                      onValueChange={(role) => updateRoleMutation.mutate({ userId: employee.id, role })}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="member">Member</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getRoleColor(displayData.position)}>
+                        {displayData.position}
+                      </Badge>
+                      {displayData.canViewSensitive && (
+                        <Select 
+                          value={displayData.position.toLowerCase()} 
+                          onValueChange={(role) => updateRoleMutation.mutate({ userId: employee.id, role })}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="member">Member</SelectItem>
+                            <SelectItem value="manager">Manager</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
