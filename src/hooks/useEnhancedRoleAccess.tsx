@@ -17,17 +17,29 @@ export function useEnhancedRoleAccess() {
           return;
         }
 
-        // For now, set all authenticated users as standard users
-        // In a real implementation, you would check a user_roles table
-        setUserRole('user');
+        // Fetch actual user role from profiles table
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching user role:', error);
+          setUserRole('user');
+        } else {
+          // Map database roles to component roles
+          const dbRole = profile?.role || 'member';
+          setUserRole(dbRole === 'admin' ? 'admin' : 'user');
+        }
         
         // Log access check for security auditing
         await supabase.from('security_audit_log').insert({
           action: 'ROLE_ACCESS_CHECK',
-          resource_type: 'user_role',
+          resource: 'user_role',
+          user_id: user.id,
           details: { 
-            user_id: user.id,
-            role_checked: 'user',
+            role_checked: profile?.role || 'member',
             timestamp: new Date().toISOString()
           }
         });
@@ -43,10 +55,10 @@ export function useEnhancedRoleAccess() {
   }, []);
 
   const checkAccess = (requiredRole: string) => {
-    // For security, default to restrictive access
-    if (requiredRole === 'admin') return false;
-    if (requiredRole === 'moderator') return false;
-    return userRole === 'user';
+    // Check access based on actual user role
+    if (requiredRole === 'admin') return userRole === 'admin';
+    if (requiredRole === 'moderator') return userRole === 'admin'; // Only admins can be moderators
+    return true; // All authenticated users have basic access
   };
 
   const updateRole = async (newRole: string) => {
@@ -59,9 +71,9 @@ export function useEnhancedRoleAccess() {
 
   return {
     userRole,
-    canAccessFinancials: userRole === 'user', // Users can access their own company data
-    canAccessAnalytics: userRole === 'user',   // Users can see their own analytics
-    isAdmin: false, // No admin privileges by default
+    canAccessFinancials: userRole === 'admin', // Only admins can access financials
+    canAccessAnalytics: userRole === 'admin',   // Only admins can see analytics
+    isAdmin: userRole === 'admin',
     loading,
     checkAccess,
     updateRole,

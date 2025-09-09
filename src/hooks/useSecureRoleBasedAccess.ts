@@ -33,12 +33,12 @@ export function useSecureRoleBasedAccess(): SecureRoleAccessState {
           return;
         }
 
-        // Enhanced profile fetch with role validation (fallback if role column doesn't exist)
+        // Fetch user profile with role and company_id from database
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('company_id, id')
-          .eq('id', user.id)
-          .single();
+          .select('role, company_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching user profile:', error);
@@ -48,32 +48,32 @@ export function useSecureRoleBasedAccess(): SecureRoleAccessState {
           // Log security event for failed role check
           await supabase.from('security_audit_log').insert({
             action: 'ROLE_CHECK_FAILED',
-            resource_type: 'user_role',
+            resource: 'user_role',
+            user_id: user.id,
             details: { 
-              user_id: user.id,
               error: error.message,
               timestamp: new Date().toISOString()
             }
           });
         } else {
-          // Default to member role until role column is added to database
-          const role = 'member';
+          // Use actual role from database
+          const role = profile?.role || 'member';
           
-          setUserRole(role);
-          setCompanyId(profile.company_id);
+          setUserRole(role as 'admin' | 'manager' | 'member');
+          setCompanyId(profile?.company_id || null);
           
           // Store role securely for offline validation
           await secureStorage.setItem('user_role', role);
-          await secureStorage.setItem('company_id', profile.company_id);
+          await secureStorage.setItem('company_id', profile?.company_id || '');
 
           // Enhanced security logging
           await supabase.from('security_audit_log').insert({
             action: 'ROLE_ACCESS_VERIFIED',
-            resource_type: 'user_role',
+            resource: 'user_role',
+            user_id: user.id,
             details: { 
-              user_id: user.id,
               role: role,
-              company_id: profile.company_id,
+              company_id: profile?.company_id,
               timestamp: new Date().toISOString(),
               user_agent: navigator.userAgent
             }
@@ -87,7 +87,7 @@ export function useSecureRoleBasedAccess(): SecureRoleAccessState {
         // Log critical security error
         await supabase.from('security_audit_log').insert({
           action: 'CRITICAL_ROLE_ERROR',
-          resource_type: 'security',
+          resource: 'security',
           details: {
             error: error instanceof Error ? error.message : 'Unknown error',
             timestamp: new Date().toISOString(),
@@ -108,46 +108,59 @@ export function useSecureRoleBasedAccess(): SecureRoleAccessState {
     fetchSecureUserRole();
 
     // Enhanced real-time role monitoring
-    const channel = supabase
-      .channel('secure-role-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${supabase.auth.getUser().then(u => u.data.user?.id)}`
-        },
-        async (payload) => {
-          const newRole = payload.new.role;
-          const oldRole = payload.old.role;
-          
-          // Log role change for security audit
-          await supabase.from('security_audit_log').insert({
-            action: 'ROLE_CHANGED',
-            resource_type: 'user_role',
-            details: {
-              old_role: oldRole,
-              new_role: newRole,
-              changed_at: new Date().toISOString(),
-              user_id: payload.new.id
-            }
-          });
-          
-          setUserRole(newRole);
-          await secureStorage.setItem('user_role', newRole);
-          
-          toast({
-            title: "Role Updated",
-            description: `Your role has been changed from ${oldRole} to ${newRole}`,
-            variant: newRole === 'admin' ? 'default' : 'destructive'
-          });
-        }
-      )
-      .subscribe();
+    const setupSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('secure-role-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'profiles',
+            filter: `user_id=eq.${user.id}`
+          },
+          async (payload) => {
+            const newRole = payload.new.role || 'member';
+            const oldRole = payload.old.role || 'member';
+            
+            // Log role change for security audit
+            await supabase.from('security_audit_log').insert({
+              action: 'ROLE_CHANGED',
+              resource: 'user_role',
+              user_id: user.id,
+              details: {
+                old_role: oldRole,
+                new_role: newRole,
+                changed_at: new Date().toISOString()
+              }
+            });
+            
+            setUserRole(newRole);
+            setCompanyId(payload.new.company_id);
+            await secureStorage.setItem('user_role', newRole);
+            
+            toast({
+              title: "Role Updated",
+              description: `Your role has been changed from ${oldRole} to ${newRole}`,
+              variant: newRole === 'admin' ? 'default' : 'destructive'
+            });
+          }
+        )
+        .subscribe();
+
+      return channel;
+    };
+
+    let subscription: any;
+    setupSubscription().then(channel => subscription = channel);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (subscription) {
+        supabase.removeChannel(subscription);
+      }
     };
   }, [toast]);
 
