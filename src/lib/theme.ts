@@ -31,7 +31,7 @@ export async function loadThemeAsync(): Promise<ThemeSettings> {
 export function saveTheme(theme: ThemeSettings) {
   // Save to both for immediate access and secure storage
   localStorage.setItem("as-theme", JSON.stringify(theme));
-  secureStorage.setItem("as-theme", theme, { encrypt: true });
+  secureStorage.setItem("as-theme", theme);
 }
 
 export function applyUserTheme(theme?: ThemeSettings) {

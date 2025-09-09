@@ -37,10 +37,7 @@ export function EnhancedSecurityManager({ children }: EnhancedSecurityManagerPro
         if (legacyData) {
           try {
             const parsedData = JSON.parse(legacyData);
-            await secureStorage.setItem(key, parsedData, { 
-              encrypt: true, 
-              serverSide: true 
-            });
+            await secureStorage.setItem(key, parsedData);
             localStorage.removeItem(key);
           } catch (parseError) {
             console.warn(`Failed to migrate ${key}:`, parseError);
@@ -61,7 +58,7 @@ export function EnhancedSecurityManager({ children }: EnhancedSecurityManagerPro
           user_id: user?.id,
           timestamp: new Date().toISOString(),
           details
-        }, { encrypt: true, serverSide: true });
+        });
       } catch (error) {
         console.error('Failed to log security event:', error);
       }

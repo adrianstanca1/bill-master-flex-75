@@ -124,7 +124,7 @@ export function InvoiceGenerator() {
   const totals = computeTotals(values as InvoiceData);
 
   async function saveDefaults() {
-    await secureStorage.setItem('as-invoice-defaults', values, { encrypt: true });
+    await secureStorage.setItem('as-invoice-defaults', values);
     toast({
       title: "Defaults saved",
       description: "Your default values have been saved securely.",
