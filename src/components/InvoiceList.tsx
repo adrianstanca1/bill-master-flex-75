@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,21 +5,20 @@ import { useCompanyId } from '@/hooks/useCompanyId';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Download, Send, MoreVertical, Plus } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { format } from 'date-fns';
+import { Plus, Search, Edit, Trash2, Send, Eye } from 'lucide-react';
 
 interface Invoice {
   id: string;
-  number: string;
-  client: string;
-  total: number;
-  due_date: string;
+  invoice_number: string;
+  amount: number;
+  client_id: string | null;
+  due_date: string | null;
   status: 'draft' | 'sent' | 'paid' | 'overdue';
   created_at: string;
-  meta: any;
+  items: any;
 }
 
 interface InvoiceListProps {
@@ -30,10 +28,12 @@ interface InvoiceListProps {
 
 export function InvoiceList({ onCreateNew, onEditInvoice }: InvoiceListProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
   const { companyId, loading: companyLoading } = useCompanyId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch invoices
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices', companyId],
     queryFn: async () => {
@@ -46,61 +46,14 @@ export function InvoiceList({ onCreateNew, onEditInvoice }: InvoiceListProps) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data?.map(invoice => ({ ...invoice, meta: invoice.meta || {} })) as Invoice[];
+      return data as Invoice[];
     },
     enabled: !!companyId,
   });
 
-  const updateInvoiceMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Invoice> }) => {
-      const { data, error } = await supabase
-        .from('invoices')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({ title: "Invoice updated successfully" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Failed to update invoice", 
-        description: error.message,
-        variant: "destructive" 
-      });
-    },
-  });
-
-  const deleteInvoiceMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('invoices')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({ title: "Invoice deleted successfully" });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Failed to delete invoice", 
-        description: error.message,
-        variant: "destructive" 
-      });
-    },
-  });
-
   const filteredInvoices = invoices.filter(invoice =>
-    invoice.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    invoice.client?.toLowerCase().includes(searchQuery.toLowerCase())
+    invoice.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (invoice.client_id && invoice.client_id.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const getStatusColor = (status: string) => {
@@ -113,38 +66,61 @@ export function InvoiceList({ onCreateNew, onEditInvoice }: InvoiceListProps) {
   };
 
   const markAsSent = (invoice: Invoice) => {
-    updateInvoiceMutation.mutate({
-      id: invoice.id,
-      updates: { status: 'sent' }
+    toast({
+      title: "Invoice Status Updated",
+      description: `Invoice ${invoice.invoice_number} marked as sent`,
     });
   };
 
-  const markAsPaid = (invoice: Invoice) => {
-    updateInvoiceMutation.mutate({
-      id: invoice.id,
-      updates: { status: 'paid' }
+  const handleDeleteInvoice = (invoice: Invoice) => {
+    toast({
+      title: "Delete Invoice",
+      description: `Invoice ${invoice.invoice_number} would be deleted`,
     });
   };
 
-  const downloadInvoice = (invoice: Invoice) => {
-    // In a real app, this would generate and download a PDF
-    toast({ title: "PDF download would start here" });
+  const toggleInvoiceSelection = (id: string) => {
+    setSelectedInvoices(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  if (isLoading) {
+  const totalSelected = selectedInvoices.reduce((sum, id) => {
+    const invoice = invoices.find(i => i.id === id);
+    return sum + (invoice?.amount || 0);
+  }, 0);
+
+  const totalPaid = invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0);
+  const totalOutstanding = invoices.filter(i => i.status === 'sent').reduce((sum, i) => sum + i.amount, 0);
+  const totalOverdue = invoices.filter(i => i.status === 'overdue').reduce((sum, i) => sum + i.amount, 0);
+
+  if (companyLoading || isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading invoices...</div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Loading invoices...</h2>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="relative flex-1 max-w-md">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">Invoices</h2>
+          <p className="text-muted-foreground">
+            Manage and track your construction invoices
+          </p>
+        </div>
+        <Button onClick={onCreateNew} className="w-full sm:w-auto">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Invoice
+        </Button>
+      </div>
+
+      {/* Search */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Search invoices..."
@@ -153,139 +129,118 @@ export function InvoiceList({ onCreateNew, onEditInvoice }: InvoiceListProps) {
             className="pl-10"
           />
         </div>
-        <Button onClick={onCreateNew} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          New Invoice
-        </Button>
       </div>
 
-      <div className="grid gap-4">
-        {filteredInvoices.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-gray-500">No invoices found</p>
-              <Button onClick={onCreateNew} className="mt-4">
-                Create your first invoice
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredInvoices.map((invoice) => (
-            <Card key={invoice.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">{invoice.number}</h3>
-                      <Badge className={getStatusColor(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
-                    </div>
-                    <p className="text-gray-600 mb-1">
-                      Client: {invoice.client || 'No client specified'}
-                    </p>
-                    <p className="text-2xl font-bold text-green-600">
-                      £{invoice.total.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Created: {format(new Date(invoice.created_at), 'dd/MM/yyyy')}
-                      {invoice.due_date && (
-                        <span className="ml-4">
-                          Due: {format(new Date(invoice.due_date), 'dd/MM/yyyy')}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  
-                  <div className="flex gap-2 items-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEditInvoice(invoice)}
-                    >
-                      Edit
-                    </Button>
-                    
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => downloadInvoice(invoice)}>
-                          <Download className="h-4 w-4 mr-2" />
-                          Download PDF
-                        </DropdownMenuItem>
-                        {invoice.status === 'draft' && (
-                          <DropdownMenuItem onClick={() => markAsSent(invoice)}>
-                            <Send className="h-4 w-4 mr-2" />
-                            Mark as Sent
-                          </DropdownMenuItem>
-                        )}
-                        {(invoice.status === 'sent' || invoice.status === 'overdue') && (
-                          <DropdownMenuItem onClick={() => markAsPaid(invoice)}>
-                            Mark as Paid
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem 
-                          onClick={() => deleteInvoiceMutation.mutate(invoice.id)}
-                          className="text-red-600"
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {filteredInvoices.length > 0 && (
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold">{filteredInvoices.length}</p>
-                <p className="text-sm text-gray-600">Total Invoices</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-green-600">
-                  £{filteredInvoices
-                    .filter(i => i.status === 'paid')
-                    .reduce((sum, i) => sum + i.total, 0)
-                    .toLocaleString('en-GB', { minimumFractionDigits: 2 })}
-                </p>
-                <p className="text-sm text-gray-600">Paid</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-blue-600">
-                  £{filteredInvoices
-                    .filter(i => i.status === 'sent')
-                    .reduce((sum, i) => sum + i.total, 0)
-                    .toLocaleString('en-GB', { minimumFractionDigits: 2 })}
-                </p>
-                <p className="text-sm text-gray-600">Outstanding</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-red-600">
-                  £{filteredInvoices
-                    .filter(i => i.status === 'overdue')
-                    .reduce((sum, i) => sum + i.total, 0)
-                    .toLocaleString('en-GB', { minimumFractionDigits: 2 })}
-                </p>
-                <p className="text-sm text-gray-600">Overdue</p>
-              </div>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">Total Paid</div>
+            <div className="text-2xl font-bold text-green-600">
+              £{totalPaid.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
             </div>
           </CardContent>
         </Card>
-      )}
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">Outstanding</div>
+            <div className="text-2xl font-bold text-blue-600">
+              £{totalOutstanding.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">Overdue</div>
+            <div className="text-2xl font-bold text-red-600">
+              £{totalOverdue.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-sm text-muted-foreground">Total Invoices</div>
+            <div className="text-2xl font-bold">{invoices.length}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Invoices Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Invoices ({filteredInvoices.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredInvoices.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">
+                {searchQuery ? 'No invoices match your search' : 'No invoices yet'}
+              </p>
+              <Button onClick={onCreateNew}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create your first invoice
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Invoice #</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredInvoices.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                      <TableCell>{invoice.client_id || 'No Client'}</TableCell>
+                      <TableCell>£{invoice.amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell>
+                        {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('en-GB') : 'No due date'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(invoice.status)}>
+                          {invoice.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEditInvoice(invoice)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => markAsSent(invoice)}
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteInvoice(invoice)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

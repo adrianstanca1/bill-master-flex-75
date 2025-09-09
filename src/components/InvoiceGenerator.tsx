@@ -203,12 +203,11 @@ export function InvoiceGenerator() {
 
       const invoiceData = {
         company_id: companyId,
-        number: values.invoice.number,
-        client: values.client.name,
-        total: totals.totalDue,
+        invoice_number: values.invoice.number,
+        amount: totals.totalDue,
         due_date: values.invoice.dueDate || null,
         status: 'draft' as const,
-        meta: {
+        items: {
           company: values.company,
           client: values.client,
           invoice: values.invoice,

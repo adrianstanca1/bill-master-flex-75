@@ -47,9 +47,9 @@ export const ExpenseManager: React.FC = () => {
         .from('expenses')
         .select('*')
         .eq('company_id', companyId)
-        .order('txn_date', { ascending: false });
+        .order('date', { ascending: false });
       if (error) throw error;
-      return data as Expense[];
+      return data as any[];
     },
     enabled: !!companyId,
   });

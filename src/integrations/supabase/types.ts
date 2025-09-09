@@ -481,6 +481,39 @@ export type Database = {
         }
         Relationships: []
       }
+      quotes: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          items: Json | null
+          status: string | null
+          title: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          items?: Json | null
+          status?: string | null
+          title: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          items?: Json | null
+          status?: string | null
+          title?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_audit_log: {
         Row: {
           action: string

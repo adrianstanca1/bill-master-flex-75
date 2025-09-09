@@ -1,4 +1,17 @@
 
+export interface Expense {
+  id: string;
+  company_id: string;
+  description: string;
+  amount: number;
+  date: string;
+  category?: string;
+  receipt_url?: string;
+  status?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Timesheet {
   id: string;
   company_id: string;
