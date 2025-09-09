@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/components/auth/AuthProvider';
 
 interface PaymentPlan {
   id: string;
@@ -72,7 +72,7 @@ const PAYMENT_PLANS: PaymentPlan[] = [
 
 export function StripePaymentManager() {
   const { toast } = useToast();
-  const { user, session } = useAuth();
+  const { user, session } = useAuthContext();
   const [loading, setLoading] = useState<string | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [customDescription, setCustomDescription] = useState('');
