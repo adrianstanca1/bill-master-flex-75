@@ -28,27 +28,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     console.log('AuthProvider: Setting up auth listeners');
+    let mounted = true;
     
     // Listen for auth changes first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('AuthProvider: Auth state changed', event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+        console.log('AuthProvider: Auth state changed', event, session?.user?.email || 'no user');
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
       }
     );
 
     // Then get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('AuthProvider: Initial session', session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('AuthProvider: Error getting initial session:', error);
+      } else {
+        console.log('AuthProvider: Initial session', session?.user?.email || 'no session');
+      }
+      
+      if (mounted) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
     });
 
     return () => {
       console.log('AuthProvider: Cleaning up auth listeners');
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -131,11 +142,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) {
+        console.error('OAuth error:', error);
         return { data: null, error };
       }
 
+      console.log('OAuth initiated successfully');
       return { data, error: null };
     } catch (error) {
+      console.error('OAuth error:', error);
       return { data: null, error: error as Error };
     }
   };

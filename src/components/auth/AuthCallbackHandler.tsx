@@ -9,56 +9,72 @@ export function AuthCallbackHandler() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { setupCompany, getCompanyData, isLoading } = useCompanySetup();
-
-  // Add missing method for backward compatibility
-  const checkSetupStatus = async () => {
-    const data = await getCompanyData();
-    return !!data?.companyName;
-  };
+  const { getCompanyData } = useCompanySetup();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        console.log('AuthCallbackHandler: Starting callback handling...');
         
-        if (error) {
-          console.error('Auth callback error:', error);
+        // First, try to get the session from the URL params (for magic link/OAuth flows)
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Auth callback session error:', sessionError);
           toast({
-            title: "Authentication Complete",
-            description: "Redirecting to your dashboard...",
+            title: "Authentication Error",
+            description: "There was an issue with authentication. Please try again.",
+            variant: "destructive"
           });
-          navigate('/auth');
+          navigate('/auth', { replace: true });
           return;
         }
 
-        if (data.session) {
-          // Check if user needs to complete setup
-          const setupComplete = await checkSetupStatus();
+        if (sessionData.session) {
+          console.log('AuthCallbackHandler: Session found, checking setup status...');
           
-          if (setupComplete) {
-            // User has completed setup - go to dashboard
-            navigate('/dashboard', { replace: true });
-          } else {
-            // New user - redirect to setup
-            toast({
-              title: "Welcome!",
-              description: "Let's set up your company profile to get started.",
-            });
+          // Check if user needs to complete setup
+          try {
+            const companyData = await getCompanyData();
+            const setupComplete = companyData && companyData.companyName;
+            
+            if (setupComplete) {
+              console.log('AuthCallbackHandler: Setup complete, redirecting to dashboard');
+              toast({
+                title: "Welcome back!",
+                description: "Redirecting to your dashboard...",
+              });
+              navigate('/dashboard', { replace: true });
+            } else {
+              console.log('AuthCallbackHandler: Setup needed, redirecting to setup');
+              toast({
+                title: "Welcome!",
+                description: "Let's set up your company profile to get started.",
+              });
+              navigate('/setup', { replace: true });
+            }
+          } catch (setupError) {
+            console.error('AuthCallbackHandler: Setup check error:', setupError);
+            // If there's an error checking setup, assume new user needs setup
             navigate('/setup', { replace: true });
           }
         } else {
-          // No session found - redirect to auth
-          navigate('/auth');
+          console.log('AuthCallbackHandler: No session found, redirecting to auth');
+          navigate('/auth', { replace: true });
         }
       } catch (err) {
-        console.error('Auth callback error:', err);
-        navigate('/auth');
+        console.error('AuthCallbackHandler: General error:', err);
+        toast({
+          title: "Authentication Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive"
+        });
+        navigate('/auth', { replace: true });
       }
     };
 
     handleAuthCallback();
-  }, [navigate, toast, checkSetupStatus]);
+  }, [navigate, toast, getCompanyData]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

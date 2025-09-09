@@ -56,13 +56,25 @@ export function useCompanySetup() {
   const getCompanyData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      if (!user) {
+        console.log('useCompanySetup: No user found');
+        return null;
+      }
 
-      const { data: profile } = await supabase
+      console.log('useCompanySetup: Fetching profile for user:', user.id);
+
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error('useCompanySetup: Error fetching profile:', error);
+        return null;
+      }
+
+      console.log('useCompanySetup: Profile data:', profile);
 
       return {
         companyName: profile?.display_name || '',
@@ -70,9 +82,11 @@ export function useCompanySetup() {
         email: user.email || '',
         phone: '',
         address: '',
+        companyId: profile?.company_id || null,
+        role: profile?.role || 'user'
       };
     } catch (error) {
-      console.error('Error fetching company data:', error);
+      console.error('useCompanySetup: Error fetching company data:', error);
       return null;
     }
   };
