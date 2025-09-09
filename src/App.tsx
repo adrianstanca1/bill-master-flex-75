@@ -26,6 +26,7 @@ import Security from "./pages/Security";
 import AuthConfiguration from "./pages/AuthConfiguration";
 import Settings from "./pages/Settings";
 import Setup from "./pages/Setup";
+import Auth from "./pages/Auth";
 import AuthDashboard from "./pages/AuthDashboard";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
