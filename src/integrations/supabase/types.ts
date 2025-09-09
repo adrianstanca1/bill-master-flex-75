@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_interactions: {
+        Row: {
+          agent_id: string
+          agent_type: string
+          created_at: string
+          duration_ms: number | null
+          id: string
+          interaction_type: string
+          metadata: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          agent_type: string
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          interaction_type: string
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          agent_type?: string
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          interaction_type?: string
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      asset_tracking: {
+        Row: {
+          asset_name: string
+          asset_type: string
+          company_id: string
+          condition: string | null
+          created_at: string
+          id: string
+          location: string | null
+          notes: string | null
+          purchase_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          asset_name: string
+          asset_type: string
+          company_id: string
+          condition?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_name?: string
+          asset_type?: string
+          company_id?: string
+          condition?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          purchase_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       Chat: {
         Row: {
           createdAt: string

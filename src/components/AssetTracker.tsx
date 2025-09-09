@@ -21,19 +21,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Asset {
   id: string;
+  company_id: string;
   asset_name: string;
   asset_type: string;
-  serial_number?: string;
-  current_location?: string;
-  assigned_to?: string;
-  project_id?: string;
   status: string;
   condition: string;
-  last_service_date?: string;
-  next_service_due?: string;
-  purchase_date?: string;
-  purchase_cost?: number;
-  photos?: string[];
+  purchase_date?: string | null;
+  location?: string | null;
+  notes?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -46,12 +41,11 @@ export function AssetTracker() {
   const [formData, setFormData] = useState({
     asset_name: '',
     asset_type: 'equipment',
-    serial_number: '',
-    current_location: '',
-    status: 'available',
+    status: 'active',
     condition: 'good',
-    purchase_cost: '',
     purchase_date: '',
+    location: '',
+    notes: '',
   });
 
   const { toast } = useToast();
@@ -83,24 +77,20 @@ export function AssetTracker() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('asset_tracking')
         .insert({
           company_id: companyId,
           asset_name: formData.asset_name,
           asset_type: formData.asset_type,
-          serial_number: formData.serial_number || null,
-          current_location: formData.current_location || null,
           status: formData.status,
           condition: formData.condition,
-          purchase_cost: formData.purchase_cost ? parseFloat(formData.purchase_cost) : null,
           purchase_date: formData.purchase_date || null,
-        })
-        .select()
-        .single();
+          location: formData.location || null,
+          notes: formData.notes || null,
+        });
 
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       toast({
@@ -110,12 +100,11 @@ export function AssetTracker() {
       setFormData({
         asset_name: '',
         asset_type: 'equipment',
-        serial_number: '',
-        current_location: '',
-        status: 'available',
+        status: 'active',
         condition: 'good',
-        purchase_cost: '',
         purchase_date: '',
+        location: '',
+        notes: '',
       });
       setShowAddDialog(false);
       queryClient.invalidateQueries({ queryKey: ['assets'] });
@@ -124,18 +113,18 @@ export function AssetTracker() {
 
   const filteredAssets = assets?.filter(asset => {
     const matchesSearch = asset.asset_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         asset.serial_number?.toLowerCase().includes(searchTerm.toLowerCase());
+                         asset.asset_type.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || asset.status === filterStatus;
     return matchesSearch && matchesFilter;
   }) || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available': return 'bg-green-500';
-      case 'in_use': return 'bg-blue-500';
+      case 'active': return 'bg-green-500';
       case 'maintenance': return 'bg-yellow-500';
       case 'retired': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'lost': return 'bg-gray-500';
+      default: return 'bg-blue-500';
     }
   };
 
@@ -202,24 +191,24 @@ export function AssetTracker() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium">Serial Number</label>
-                    <Input
-                      placeholder="Serial/Model number"
-                      value={formData.serial_number}
-                      onChange={(e) => setFormData({...formData, serial_number: e.target.value})}
-                    />
-                  </div>
-                  <div>
                     <label className="text-sm font-medium">Location</label>
                     <Input
                       placeholder="Current location"
-                      value={formData.current_location}
-                      onChange={(e) => setFormData({...formData, current_location: e.target.value})}
+                      value={formData.location}
+                      onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Purchase Date</label>
+                    <Input
+                      type="date"
+                      value={formData.purchase_date}
+                      onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Status</label>
                     <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value})}>
@@ -227,10 +216,10 @@ export function AssetTracker() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="in_use">In Use</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
                         <SelectItem value="maintenance">Maintenance</SelectItem>
                         <SelectItem value="retired">Retired</SelectItem>
+                        <SelectItem value="lost">Lost</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -248,23 +237,15 @@ export function AssetTracker() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Purchase Cost</label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.purchase_cost}
-                      onChange={(e) => setFormData({...formData, purchase_cost: e.target.value})}
-                    />
-                  </div>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">Purchase Date</label>
-                  <Input
-                    type="date"
-                    value={formData.purchase_date}
-                    onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
+                  <label className="text-sm font-medium">Notes</label>
+                  <Textarea
+                    placeholder="Additional notes about this asset..."
+                    value={formData.notes}
+                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    rows={3}
                   />
                 </div>
 
@@ -300,10 +281,10 @@ export function AssetTracker() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="available">Available</SelectItem>
-                <SelectItem value="in_use">In Use</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="maintenance">Maintenance</SelectItem>
                 <SelectItem value="retired">Retired</SelectItem>
+                <SelectItem value="lost">Lost</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -328,18 +309,15 @@ export function AssetTracker() {
                     </div>
                     
                     <div className="space-y-2 text-xs text-muted-foreground">
-                      {asset.serial_number && (
-                        <div>Serial: {asset.serial_number}</div>
-                      )}
-                      {asset.current_location && (
+                      {asset.location && (
                         <div className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
-                          {asset.current_location}
+                          {asset.location}
                         </div>
                       )}
                       <div className="flex items-center justify-between">
                         <Badge variant="outline" className="text-xs">
-                          {asset.status.replace('_', ' ')}
+                          {asset.status}
                         </Badge>
                         <Badge variant="secondary" className="text-xs">
                           {asset.condition}

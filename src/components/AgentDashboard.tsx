@@ -18,10 +18,13 @@ import { supabase } from '@/integrations/supabase/client';
 interface AgentInteraction {
   id: string;
   agent_id: string;
+  agent_type: string;
   interaction_type: string;
   status: string;
-  duration_ms: number;
+  duration_ms: number | null;
+  metadata?: any;
   created_at: string;
+  updated_at: string;
 }
 
 interface AgentDashboardProps {
@@ -42,12 +45,14 @@ export function AgentDashboard({ agentId, agentName, agentDescription }: AgentDa
         .limit(10);
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as AgentInteraction[];
     }
   });
 
   const totalInteractions = interactions.length;
-  const avgResponseTime = 250; // Mock average response time
+  const avgResponseTime = interactions.length > 0 
+    ? interactions.reduce((acc, int) => acc + (int.duration_ms || 250), 0) / interactions.length 
+    : 250;
   const successRate = (interactions.filter(int => int.status === 'completed').length / Math.max(totalInteractions, 1)) * 100;
 
   const recentInteractions = interactions.slice(0, 5);
@@ -133,8 +138,8 @@ export function AgentDashboard({ agentId, agentName, agentDescription }: AgentDa
                       {interaction.status}
                     </Badge>
                      <span className="text-sm text-muted-foreground">
-                       250ms
-                     </span>
+                        {interaction.duration_ms || 250}ms
+                      </span>
                   </div>
                 </div>
               ))}
