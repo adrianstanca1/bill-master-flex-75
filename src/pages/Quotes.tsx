@@ -36,7 +36,7 @@ const Quotes: React.FC = () => {
       const { data, error } = await supabase
         .from("quotes")
         .select("*")
-        .eq("company_id", companyId)
+        .eq("company_id", typeof companyId === 'string' ? companyId : companyId?.companyId || '')
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Quote[];
