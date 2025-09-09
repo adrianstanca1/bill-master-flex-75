@@ -1,46 +1,19 @@
-
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { User } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
+import { useAuthContext } from "@/components/auth/AuthProvider";
 
 export default function AuthStatus() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Listen FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // THEN check existing session
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-      })
-      .finally(() => setLoading(false));
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const { user, isAuthenticated, signOut, loading } = useAuthContext();
 
   const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-      }
-    } catch (err) {
-      console.error('Sign out error:', err);
-    }
+    await signOut();
   };
 
   if (loading) {
     return <div className="text-sm text-muted-foreground">Loading...</div>;
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <Link 
         to="/auth" 
@@ -54,14 +27,15 @@ export default function AuthStatus() {
   return (
     <div className="flex items-center gap-3 text-sm">
       <span className="text-muted-foreground hidden sm:inline">
-        {user.email}
+        {user?.email}
       </span>
-      <button
-        className="button-secondary py-1 px-2"
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={handleSignOut}
       >
         Sign out
-      </button>
+      </Button>
     </div>
   );
 }
