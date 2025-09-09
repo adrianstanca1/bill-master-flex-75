@@ -6,10 +6,15 @@ import { useAuthContext } from "@/components/auth/AuthProvider";
 import { useOAuthProviders } from "@/hooks/useOAuthProviders";
 import { EmailConfirmationBanner } from "@/components/EmailConfirmationBanner";
 import { PasswordSecurityBannerFixed } from "@/components/PasswordSecurityBannerFixed";
+import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { EnhancedSecurityFeatures } from "@/components/auth/EnhancedSecurityFeatures";
+import { AnimatedFormField } from "@/components/auth/AnimatedFormField";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff, Mail, Loader2, Shield, Github, Apple } from "lucide-react";
+import { Mail, Loader2, Shield, ArrowLeft, UserPlus, LogIn, KeyRound } from "lucide-react";
 
 export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin" | "signup" | "forgot" }) {
   const { toast } = useToast();
@@ -31,6 +36,9 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -42,6 +50,8 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
   // Enhanced OAuth handler with proper error handling
   const handleOAuthProvider = async (provider: 'google' | 'github' | 'apple') => {
     setLoading(true);
+    setFormErrors({});
+    
     try {
       const { error } = await signInWithOAuth(provider);
       
@@ -62,6 +72,29 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Clear errors when switching modes
+  const handleModeSwitch = (newMode: "signin" | "signup" | "forgot") => {
+    setMode(newMode);
+    setFormErrors({});
+    setPassword("");
+    setConfirmPassword("");
+    setPasswordStrength(0);
+    setIsPasswordValid(false);
+  };
+
+  // Handle password strength changes
+  const handlePasswordStrengthChange = (strength: number, isValid: boolean) => {
+    setPasswordStrength(strength);
+    setIsPasswordValid(isValid);
+    
+    if (formErrors.password && isValid) {
+      setFormErrors(prev => {
+        const { password, ...rest } = prev;
+        return rest;
+      });
     }
   };
 
@@ -308,18 +341,20 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
         
         <PasswordSecurityBannerFixed />
         
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center">
-              <Shield className="w-8 h-8 text-primary-foreground" />
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-primary flex items-center justify-center shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-105">
+              {mode === "signin" && <LogIn className="w-10 h-10 text-primary-foreground" />}
+              {mode === "signup" && <UserPlus className="w-10 h-10 text-primary-foreground" />}
+              {mode === "forgot" && <KeyRound className="w-10 h-10 text-primary-foreground" />}
             </div>
           </div>
-          <h1 className="text-4xl font-bold mb-3 text-gradient">
+          <h1 className="text-4xl font-bold mb-4 text-gradient animate-slide-up">
             {mode === "signin" && "Welcome Back"}
             {mode === "signup" && "Join Our Platform"}
             {mode === "forgot" && "Reset Password"}
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-lg animate-slide-up">
             {mode === "signin" && "Secure access to your business dashboard"}
             {mode === "signup" && "Create your secure account in seconds"}
             {mode === "forgot" && "We'll send you reset instructions"}
@@ -333,82 +368,22 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
           />
         )}
 
-        <div className="elevated-card p-8">
+        <div className="elevated-card p-8 animate-scale-in">
           {mode !== "forgot" && (
             <>
-              {/* OAuth Providers */}
-              <div className="space-y-3 mb-6">
-                {enabledProviders.google && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 text-sm font-medium hover:bg-muted/50 transition-colors"
-                    onClick={() => handleOAuthProvider('google')}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                      </svg>
-                    )}
-                    Continue with Google
-                  </Button>
-                )}
+              {/* Enhanced Social Login */}
+              <SocialLoginButtons
+                onOAuthSignIn={handleOAuthProvider}
+                disabled={loading}
+                enabledProviders={enabledProviders}
+              />
 
-                {enabledProviders.github && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 text-sm font-medium hover:bg-muted/50 transition-colors"
-                    onClick={() => handleOAuthProvider('github')}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Github className="w-5 h-5 mr-2" />
-                    )}
-                    Continue with GitHub
-                  </Button>
-                )}
-
-                {enabledProviders.apple && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 text-sm font-medium hover:bg-muted/50 transition-colors"
-                    onClick={() => handleOAuthProvider('apple')}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Apple className="w-5 h-5 mr-2" />
-                    )}
-                    Continue with iCloud
-                  </Button>
-                )}
-
-                {!enabledProviders.google &&
-                 !enabledProviders.github &&
-                 !enabledProviders.apple && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground">OAuth providers not configured</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="relative">
+              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <Separator className="w-full" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
+                  <span className="bg-background px-4 text-muted-foreground font-medium">
                     Or continue with email
                   </span>
                 </div>
@@ -416,171 +391,170 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
             </>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {mode === "signup" && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="block text-sm font-medium text-foreground">
-                    First Name *
-                  </label>
-                  <input 
-                    id="firstName"
-                    className="w-full px-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" 
-                    type="text" 
-                    placeholder="First name"
-                    value={firstName} 
-                    onChange={(e)=>setFirstName(e.target.value)} 
-                    autoComplete="given-name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="block text-sm font-medium text-foreground">
-                    Last Name *
-                  </label>
-                  <input 
-                    id="lastName"
-                    className="w-full px-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" 
-                    type="text" 
-                    placeholder="Last name"
-                    value={lastName} 
-                    onChange={(e)=>setLastName(e.target.value)} 
-                    autoComplete="family-name"
-                    required
-                  />
-                </div>
+                <AnimatedFormField
+                  id="firstName"
+                  type="text"
+                  label="First Name"
+                  placeholder="Enter your first name"
+                  value={firstName}
+                  onChange={setFirstName}
+                  required
+                  autoComplete="given-name"
+                  error={formErrors.firstName}
+                />
+                <AnimatedFormField
+                  id="lastName"
+                  type="text"
+                  label="Last Name"
+                  placeholder="Enter your last name"
+                  value={lastName}
+                  onChange={setLastName}
+                  required
+                  autoComplete="family-name"
+                  error={formErrors.lastName}
+                />
               </div>
             )}
             
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                Email Address *
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input 
-                  id="email"
-                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" 
-                  type="email" 
-                  placeholder="Enter your email"
-                  value={email} 
-                  onChange={(e)=>setEmail(e.target.value)} 
-                  autoComplete="email"
-                  required
-                />
-              </div>
-            </div>
+            <AnimatedFormField
+              id="email"
+              type="email"
+              label="Email Address"
+              placeholder="Enter your email address"
+              value={email}
+              onChange={setEmail}
+              required
+              autoComplete="email"
+              icon={<Mail className="h-5 w-5" />}
+              error={formErrors.email}
+            />
             
             {mode !== "forgot" && (
-              <div className="space-y-2">
-                <label htmlFor="password" className="block text-sm font-medium text-foreground">
-                  Password *
-                </label>
-                <div className="relative">
-                  <input 
-                    id="password"
-                    className="w-full px-4 py-3 pr-10 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" 
-                    type={showPassword ? "text" : "password"}
-                    placeholder={mode === "signup" ? "Create a strong password" : "Enter your password"}
-                    value={password} 
-                    onChange={(e)=>setPassword(e.target.value)}
-                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {mode === "signup" && (
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
-                  Confirm Password *
-                </label>
-                <div className="relative">
-                  <input 
-                    id="confirmPassword"
-                    className="w-full px-4 py-3 pr-10 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" 
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    value={confirmPassword} 
-                    onChange={(e)=>setConfirmPassword(e.target.value)}
-                    autoComplete="new-password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {mode === "signup" && (
-              <div className="flex items-start space-x-2">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
-                  className="mt-1"
+              <div className="space-y-4">
+                <AnimatedFormField
+                  id="password"
+                  type="password"
+                  label="Password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={setPassword}
                   required
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  showPasswordToggle
+                  error={formErrors.password}
                 />
-                <label htmlFor="terms" className="text-sm text-muted-foreground">
-                  I agree to the{" "}
-                  <a href="/terms" className="text-primary hover:underline">
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a href="/policy" className="text-primary hover:underline">
-                    Privacy Policy
-                  </a>
-                </label>
+                
+                {mode === "signup" && password && (
+                  <PasswordStrengthIndicator
+                    password={password}
+                    onStrengthChange={handlePasswordStrengthChange}
+                    showRequirements={true}
+                  />
+                )}
               </div>
             )}
-            
+
+            {mode === "signup" && (
+              <AnimatedFormField
+                id="confirmPassword"
+                type="password"
+                label="Confirm Password"
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                required
+                autoComplete="new-password"
+                showPasswordToggle
+                error={formErrors.confirmPassword}
+              />
+            )}
+
+            {/* Terms and Security Features for Signup */}
+            {mode === "signup" && (
+              <div className="space-y-6">
+                <div className="flex items-start space-x-3">
+                  <Checkbox 
+                    id="terms"
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(checked === true)}
+                    className="mt-1"
+                  />
+                  <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
+                    I agree to the{" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/terms")}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Terms of Service
+                    </button>{" "}
+                    and{" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/policy")}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Privacy Policy
+                    </button>
+                  </label>
+                </div>
+                
+                <EnhancedSecurityFeatures
+                  email={email}
+                  onSecurityAlert={(alert) => toast({
+                    title: "Security Alert",
+                    description: alert,
+                    variant: "destructive"
+                  })}
+                 />
+               </div>
+             )}
+
             <Button
               type="submit"
-              className="w-full h-12"
-              disabled={loading}
+              size="lg"
+              className="w-full h-12 font-medium animate-fade-in"
+              disabled={loading || (mode === "signup" && !isPasswordValid)}
             >
               {loading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : null}
-              {mode === "signin" && "Sign In"}
-              {mode === "signup" && "Create Account"}
-              {mode === "forgot" && "Send Reset Email"}
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {mode === "signin" && "Signing In..."}
+                  {mode === "signup" && "Creating Account..."}
+                  {mode === "forgot" && "Sending Email..."}
+                </>
+              ) : (
+                <>
+                  {mode === "signin" && "Sign In"}
+                  {mode === "signup" && "Create Account"}
+                  {mode === "forgot" && "Send Reset Email"}
+                </>
+              )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center space-y-2">
+          {/* Navigation Links */}
+          <div className="mt-8 text-center space-y-3 animate-fade-in">
             {mode === "signin" && (
               <>
                 <p className="text-sm text-muted-foreground">
                   Don't have an account?{" "}
                   <button 
-                    onClick={() => setMode("signup")}
-                    className="text-primary hover:underline font-medium"
+                    onClick={() => handleModeSwitch("signup")}
+                    className="text-primary hover:underline font-medium interactive-link"
                   >
-                    Sign up
+                    Create one now
                   </button>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Forgot your password?{" "}
                   <button 
-                    onClick={() => setMode("forgot")}
-                    className="text-primary hover:underline font-medium"
+                    onClick={() => handleModeSwitch("forgot")}
+                    className="text-primary hover:underline font-medium interactive-link"
                   >
-                    Reset it
+                    Forgot your password?
                   </button>
                 </p>
               </>
@@ -590,24 +564,24 @@ export default function Auth({ defaultMode = "signin" }: { defaultMode?: "signin
               <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <button 
-                  onClick={() => setMode("signin")}
-                  className="text-primary hover:underline font-medium"
+                  onClick={() => handleModeSwitch("signin")}
+                  className="text-primary hover:underline font-medium interactive-link"
                 >
-                  Sign in
+                  Sign in here
                 </button>
               </p>
             )}
             
             {mode === "forgot" && (
-              <p className="text-sm text-muted-foreground">
-                Remember your password?{" "}
+              <div className="flex items-center justify-center gap-2">
                 <button 
-                  onClick={() => setMode("signin")}
-                  className="text-primary hover:underline font-medium"
+                  onClick={() => handleModeSwitch("signin")}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors interactive-link"
                 >
-                  Sign in
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to sign in
                 </button>
-              </p>
+              </div>
             )}
           </div>
         </div>
