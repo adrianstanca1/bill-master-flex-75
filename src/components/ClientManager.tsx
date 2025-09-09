@@ -40,30 +40,96 @@ export function ClientManager() {
     notes: ''
   });
 
-  // Temporarily disabled until types are updated
-  const clients: any[] = [];
-  const isLoading = false;
+  // Restore proper functionality now that tables exist
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ['clients', companyId],
+    queryFn: async () => {
+      if (!companyId) return [];
+      
+      const { data, error } = await (supabase as any)
+        .from('clients')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false });
 
-  const createClientMutation = {
-    mutate: () => {
-      toast({ title: "Client creation temporarily disabled - types updating" });
+      if (error) throw error;
+      return data as Client[];
     },
-    isPending: false
-  };
+    enabled: !!companyId,
+  });
 
-  const updateClientMutation = {
-    mutate: () => {
-      toast({ title: "Client updates temporarily disabled - types updating" });
-    },
-    isPending: false
-  };
+  const createClientMutation = useMutation({
+    mutationFn: async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>) => {
+      const { data, error } = await (supabase as any)
+        .from('clients')
+        .insert([{ ...clientData, company_id: companyId }])
+        .select()
+        .single();
 
-  const deleteClientMutation = {
-    mutate: () => {
-      toast({ title: "Client deletion temporarily disabled - types updating" });
+      if (error) throw error;
+      return data;
     },
-    isPending: false
-  };
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast({ title: "Client created successfully" });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to create client", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const updateClientMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Client> }) => {
+      const { data, error } = await (supabase as any)
+        .from('clients')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast({ title: "Client updated successfully" });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update client", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const deleteClientMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any)
+        .from('clients')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      toast({ title: "Client deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete client", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
 
   const resetForm = () => {
     setFormData({
