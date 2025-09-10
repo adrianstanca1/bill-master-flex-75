@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AuthCallbackHandler } from "@/components/auth/AuthCallbackHandler";
+import { SecurityHeadersEnforcer } from "@/components/SecurityHeadersEnforcer";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Invoices from "./pages/Invoices";
@@ -54,6 +55,7 @@ function App() {
   return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <SecurityHeadersEnforcer />
       <Toaster />
       <Sonner />
       <BrowserRouter>
