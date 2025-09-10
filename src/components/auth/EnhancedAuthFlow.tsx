@@ -11,6 +11,7 @@ import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator";
 import { SocialLoginButtons } from "./SocialLoginButtons";
 import { useOAuthProviders } from "@/hooks/useOAuthProviders";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { 
   Shield, 
@@ -47,6 +48,7 @@ export function EnhancedAuthFlow({ mode, onModeChange }: EnhancedAuthFlowProps) 
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState(0);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   // Security features state
   const [securityLevel, setSecurityLevel] = useState<"basic" | "enhanced" | "enterprise">("basic");
@@ -93,6 +95,16 @@ export function EnhancedAuthFlow({ mode, onModeChange }: EnhancedAuthFlowProps) 
       if (mode === "signup" && (!firstName.trim() || !lastName.trim())) {
         if (!firstName.trim()) errors.firstName = "First name is required";
         if (!lastName.trim()) errors.lastName = "Last name is required";
+      }
+
+      if (mode === "signin") {
+        if (!password) {
+          errors.password = "Password is required";
+        }
+      }
+
+      if (mode === "signup" && !acceptTerms) {
+        errors.terms = "You must accept the terms and conditions";
       }
     }
 
@@ -270,6 +282,26 @@ export function EnhancedAuthFlow({ mode, onModeChange }: EnhancedAuthFlowProps) 
                 icon={<Lock className="h-5 w-5" />}
                 error={formErrors.password}
               />
+            )}
+
+            {mode === "signup" && (
+              <div className="space-y-4">
+                <div className="flex items-start space-x-2">
+                  <Checkbox 
+                    id="terms"
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(checked === true)}
+                  />
+                  <label htmlFor="terms" className="text-sm text-muted-foreground">
+                    I agree to the terms and conditions
+                  </label>
+                </div>
+                {formErrors.terms && (
+                  <p className="text-sm text-destructive">
+                    {formErrors.terms}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
