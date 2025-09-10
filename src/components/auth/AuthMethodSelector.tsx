@@ -1,202 +1,208 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MagicLinkAuth } from "./MagicLinkAuth";
-import { TwoFactorSetup } from "./TwoFactorSetup";
-import { 
-  Mail, 
-  KeyRound, 
-  Shield, 
-  Sparkles, 
-  Fingerprint,
-  Smartphone
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { EnhancedSecurityFeatures } from "./EnhancedSecurityFeatures";
+import { SocialLoginButtons } from "./SocialLoginButtons";
+import { EnhancedAuthFlow } from "./EnhancedAuthFlow";
+import { SecurityDashboard } from "./SecurityDashboard";
+import { useOAuthProviders } from "@/hooks/useOAuthProviders";
+import { useAuthContext } from "./AuthProvider";
+import { Sparkles, Shield, Zap, Lock, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AuthMethodSelectorProps {
   mode: 'signin' | 'signup';
-  className?: string;
-  onModeChange?: (mode: 'signin' | 'signup') => void;
+  onModeChange: (mode: 'signin' | 'signup') => void;
 }
 
 export function AuthMethodSelector({ 
   mode, 
-  className,
   onModeChange 
 }: AuthMethodSelectorProps) {
-  const [selectedMethod, setSelectedMethod] = useState<'traditional' | 'magic' | 'biometric'>('traditional');
+  const [selectedMethod, setSelectedMethod] = useState<"enhanced" | "social" | "security" | "dashboard">("enhanced");
+  const { enabledProviders } = useOAuthProviders();
+  const { isAuthenticated } = useAuthContext();
 
-  const authMethods = [
+  const methods = [
     {
-      id: 'traditional' as const,
-      name: 'Email & Password',
-      description: 'Classic email and password authentication',
-      icon: <KeyRound className="w-5 h-5" />,
-      color: 'from-blue-500 to-blue-600',
-      recommended: false
-    },
-    {
-      id: 'magic' as const,
-      name: 'Magic Link',
-      description: 'Passwordless sign-in via email',
+      id: "enhanced" as const,
+      title: "Enhanced Authentication",
+      description: "Modern, secure login with advanced features",
       icon: <Sparkles className="w-5 h-5" />,
-      color: 'from-purple-500 to-pink-500',
-      recommended: true
+      badge: "Recommended",
+      features: ["Smart Security", "Biometric Support", "Progressive Setup"]
     },
     {
-      id: 'biometric' as const,
-      name: 'Biometric',
-      description: 'Fingerprint or Face recognition',
-      icon: <Fingerprint className="w-5 h-5" />,
-      color: 'from-green-500 to-emerald-500',
-      recommended: false,
-      beta: true
+      id: "social" as const,
+      title: "Social Login",
+      description: "Quick sign-in with your preferred provider",
+      icon: <Zap className="w-5 h-5" />,
+      badge: "Fast",
+      features: ["One-Click Login", "Secure OAuth", "Auto Profile Setup"]
+    },
+    {
+      id: "security" as const,
+      title: "Security Features",
+      description: "Advanced security and monitoring tools",
+      icon: <Shield className="w-5 h-5" />,
+      badge: "Enterprise",
+      features: ["Multi-Factor Auth", "Device Management", "Activity Monitoring"]
+    },
+    {
+      id: "dashboard" as const,
+      title: "Security Dashboard",
+      description: "Monitor and manage your account security",
+      icon: <Settings className="w-5 h-5" />,
+      badge: "Manage",
+      features: ["Security Score", "Activity Log", "Device Control"]
     }
   ];
 
-  const handleMethodSelect = (methodId: 'traditional' | 'magic' | 'biometric') => {
-    setSelectedMethod(methodId);
-  };
+  const renderMethodContent = () => {
+    switch (selectedMethod) {
+      case "enhanced":
+        return (
+          <div className="mt-6">
+            <EnhancedAuthFlow 
+              mode={mode}
+              onModeChange={onModeChange}
+            />
+          </div>
+        );
+      
+      case "social":
+        return (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5" />
+                Social Authentication
+              </CardTitle>
+              <CardDescription>
+                Sign in quickly and securely with your preferred social provider
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SocialLoginButtons
+                onOAuthSignIn={async (provider) => {
+                  console.log(`Social login with ${provider}`);
+                }}
+                disabled={false}
+                enabledProviders={enabledProviders}
+              />
+            </CardContent>
+          </Card>
+        );
+      
+      case "security":
+        return (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Enhanced Security Features
+              </CardTitle>
+              <CardDescription>
+                Advanced security options for enterprise-grade protection
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EnhancedSecurityFeatures />
+            </CardContent>
+          </Card>
+        );
 
-  const handleBiometricAuth = async () => {
-    // Check if WebAuthn is supported
-    if (!window.PublicKeyCredential) {
-      alert('Biometric authentication is not supported on this device/browser');
-      return;
-    }
-
-    try {
-      // This is a simplified example - in production, you'd need proper WebAuthn implementation
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge: new Uint8Array(32),
-          rp: { name: "ConstructTime Pro" },
-          user: {
-            id: new Uint8Array(16),
-            name: "user@example.com",
-            displayName: "User"
-          },
-          pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required"
-          }
-        }
-      });
-
-      if (credential) {
-        alert('Biometric authentication set up successfully!');
-      }
-    } catch (error) {
-      alert('Biometric authentication failed or cancelled');
+      case "dashboard":
+        return (
+          <div className="mt-6">
+            {isAuthenticated ? (
+              <SecurityDashboard />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Security Dashboard
+                  </CardTitle>
+                  <CardDescription>
+                    Sign in to access your security dashboard and manage account settings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center py-8">
+                  <Lock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-4">
+                    Authentication required to access security features
+                  </p>
+                  <Button onClick={() => setSelectedMethod("enhanced")}>
+                    Sign In to Continue
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        );
+      
+      default:
+        return null;
     }
   };
 
   return (
-    <div className={cn("space-y-6", className)}>
-      <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Choose Your Sign-In Method</h2>
-        <p className="text-muted-foreground">
-          Select how you'd like to authenticate with your account
+    <div className="w-full max-w-4xl mx-auto space-y-6 animate-fade-in">
+      <div className="text-center space-y-2 animate-slide-up">
+        <h2 className="text-3xl font-bold text-gradient">
+          Choose Your Authentication Method
+        </h2>
+        <p className="text-lg text-muted-foreground">
+          Select the authentication approach that works best for you
         </p>
       </div>
 
-      <div className="grid gap-4">
-        {authMethods.map((method) => (
-          <button
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {methods.map((method, index) => (
+          <Card
             key={method.id}
-            onClick={() => handleMethodSelect(method.id)}
             className={cn(
-              "relative p-4 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-lg",
-              selectedMethod === method.id
-                ? "border-primary bg-primary/5 shadow-md"
-                : "border-border hover:border-primary/50"
+              "cursor-pointer transition-all duration-200 hover:shadow-lg hover-lift animate-scale-in",
+              selectedMethod === method.id && "ring-2 ring-primary border-primary shadow-glow",
+              "hover:border-primary/50"
             )}
+            onClick={() => setSelectedMethod(method.id)}
+            style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className="flex items-center gap-4">
-              <div className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center text-white",
-                `bg-gradient-to-r ${method.color}`
-              )}>
-                {method.icon}
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold">{method.name}</h3>
-                  {method.recommended && (
-                    <span className="px-2 py-0.5 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
-                      Recommended
-                    </span>
-                  )}
-                  {method.beta && (
-                    <span className="px-2 py-0.5 text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full">
-                      Beta
-                    </span>
-                  )}
+            <CardHeader className="text-center">
+              <div className="w-12 h-12 rounded-lg bg-gradient-primary mx-auto mb-3 flex items-center justify-center">
+                <div className="text-primary-foreground">
+                  {method.icon}
                 </div>
-                <p className="text-sm text-muted-foreground">{method.description}</p>
               </div>
-              
-              <div className={cn(
-                "w-5 h-5 rounded-full border-2 transition-all",
-                selectedMethod === method.id
-                  ? "border-primary bg-primary"
-                  : "border-muted-foreground/30"
-              )}>
-                {selectedMethod === method.id && (
-                  <div className="w-full h-full rounded-full bg-white scale-50" />
-                )}
+              <CardTitle className="text-base flex items-center justify-center gap-2">
+                {method.title}
+                <Badge variant={selectedMethod === method.id ? "default" : "secondary"} className="text-xs">
+                  {method.badge}
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-sm">
+                {method.description}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                {method.features.map((feature, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                    {feature}
+                  </div>
+                ))}
               </div>
-            </div>
-          </button>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="mt-6">
-        {selectedMethod === 'magic' && (
-          <MagicLinkAuth />
-        )}
-        
-        {selectedMethod === 'biometric' && (
-          <div className="text-center space-y-4 p-6 border rounded-xl">
-            <Smartphone className="w-16 h-16 mx-auto text-muted-foreground" />
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Biometric Authentication</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Use your fingerprint, face, or other biometric data to sign in securely.
-              </p>
-            </div>
-            <Button onClick={handleBiometricAuth} className="w-full h-12">
-              <Fingerprint className="w-4 h-4 mr-2" />
-              Set Up Biometric Sign-In
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Requires compatible device and browser support
-            </p>
-          </div>
-        )}
-      </div>
-
-      {mode === 'signup' && selectedMethod !== 'biometric' && (
-        <div className="border-t pt-6">
-          <TwoFactorSetup 
-            onSetupComplete={() => console.log('2FA setup completed')}
-          />
-        </div>
-      )}
-
-      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <span>
-          {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
-        </span>
-        <button 
-          onClick={() => onModeChange?.(mode === 'signin' ? 'signup' : 'signin')}
-          className="text-primary hover:underline font-medium"
-        >
-          {mode === 'signin' ? 'Sign up' : 'Sign in'}
-        </button>
-      </div>
+      {renderMethodContent()}
     </div>
   );
 }
