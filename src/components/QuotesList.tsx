@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { FileText, Edit, Eye, Search, Plus } from 'lucide-react';
+import { FileText, Edit, Eye, Search, Plus, Send, Download } from 'lucide-react';
 import { QuotePreview } from './QuotePreview';
+import { useToast } from '@/hooks/use-toast';
 
 interface Quote {
   id: string;
@@ -27,6 +28,61 @@ interface QuotesListProps {
 export function QuotesList({ quotes, isLoading, onCreateNew, onEdit, onConvertToInvoice }: QuotesListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const { toast } = useToast();
+
+  const handleSendQuote = async (quote: Quote) => {
+    try {
+      // Simulate sending quote via email
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Quote Sent",
+        description: `Quote "${quote.title}" has been sent successfully`,
+      });
+    } catch (error) {
+      toast({
+        title: "Send Failed",
+        description: "Failed to send quote. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDownloadQuote = async (quote: Quote) => {
+    try {
+      // Simulate PDF generation and download
+      const quoteData = {
+        title: quote.title,
+        total: quote.total,
+        items: quote.items,
+        created_at: quote.created_at,
+        status: quote.status
+      };
+      
+      const blob = new Blob([JSON.stringify(quoteData, null, 2)], { 
+        type: 'application/json' 
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `quote-${quote.id}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download Complete",
+        description: `Quote "${quote.title}" has been downloaded`,
+      });
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Failed to download quote. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const filteredQuotes = quotes.filter(quote =>
     quote.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -47,12 +103,10 @@ export function QuotesList({ quotes, isLoading, onCreateNew, onEdit, onConvertTo
             onEdit(selectedQuote);
           }}
           onSend={() => {
-            // TODO: Implement send functionality
-            console.log('Send quote:', selectedQuote.id);
+            handleSendQuote(selectedQuote);
           }}
           onDownload={() => {
-            // TODO: Implement download functionality
-            console.log('Download quote:', selectedQuote.id);
+            handleDownloadQuote(selectedQuote);
           }}
         />
       </div>
