@@ -586,6 +586,33 @@ export type Database = {
         }
         Relationships: []
       }
+      security_configurations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       Stream: {
         Row: {
           chatId: string
@@ -778,6 +805,10 @@ export type Database = {
         }[]
       }
       get_user_company_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_encryption_key: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

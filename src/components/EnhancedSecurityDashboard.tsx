@@ -4,19 +4,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Shield, AlertTriangle, CheckCircle, Settings, Database, Lock } from 'lucide-react';
 
-import { SecurityMigrationManager } from './SecurityMigrationManager';
-import { SecurityConfigurationManager } from './SecurityConfigurationManager';
 import { SecurityHeadersEnforcer } from './SecurityHeadersEnforcer';
+import { EnhancedSecurityHeaders } from './EnhancedSecurityHeaders';
 import { SecurityAlertSystem } from './SecurityAlertSystem';
 import { EnhancedSecurityScanResults } from './EnhancedSecurityScanResults';
+import { SecurityConfigurationManager } from './SecurityConfigurationManager';
 import { SecurityMonitoringDashboard } from './SecurityMonitoringDashboard';
+import { SecurityMigrationManager } from './SecurityMigrationManager';
+import { SecurityAgentMonitor } from './SecurityAgentMonitor';
 
 export function EnhancedSecurityDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <SecurityHeadersEnforcer />
+      <EnhancedSecurityHeaders />
       <SecurityAlertSystem />
       
       <div className="container mx-auto p-6 space-y-6">
@@ -126,6 +129,7 @@ export function EnhancedSecurityDashboard() {
 
           <TabsContent value="monitoring" className="space-y-6">
             <SecurityMonitoringDashboard />
+            <SecurityAgentMonitor />
           </TabsContent>
 
           <TabsContent value="data-security" className="space-y-6">
@@ -133,6 +137,6 @@ export function EnhancedSecurityDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </>
+    </div>
   );
 }

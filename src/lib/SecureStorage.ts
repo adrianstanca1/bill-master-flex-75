@@ -1,17 +1,43 @@
 import CryptoJS from 'crypto-js';
 import { supabase } from '@/integrations/supabase/client';
 
-const ENCRYPTION_KEY = 'civix-secure-key-2024';
 const SECURE_PREFIX = 'secure_';
 const LEGACY_KEYS = ['user_preferences', 'auth_token', 'session_data', 'user_settings'];
 
 class EnhancedSecureStorage {
-  private encrypt(data: string): string {
-    return CryptoJS.AES.encrypt(data, ENCRYPTION_KEY).toString();
+  private async getEncryptionKey(): Promise<string> {
+    try {
+      // Try to get user-specific key from Supabase function
+      const { data, error } = await supabase.rpc('get_user_encryption_key');
+      if (!error && data) {
+        return data;
+      }
+    } catch (error) {
+      console.warn('Failed to get user encryption key, using fallback:', error);
+    }
+    
+    // Fallback: Generate session-based key
+    const sessionKey = this.generateSessionKey();
+    return sessionKey;
   }
 
-  private decrypt(encryptedData: string): string {
-    const bytes = CryptoJS.AES.decrypt(encryptedData, ENCRYPTION_KEY);
+  private generateSessionKey(): string {
+    // Generate a key based on session data and browser fingerprint
+    const sessionData = localStorage.getItem('supabase.auth.token') || 'no-session';
+    const browserFingerprint = `${navigator.userAgent}-${screen.width}-${screen.height}-${new Date().getTimezoneOffset()}`;
+    const combinedData = `${sessionData}-${browserFingerprint}-civix-secure-2024`;
+    
+    return CryptoJS.SHA256(combinedData).toString();
+  }
+
+  private async encrypt(data: string): Promise<string> {
+    const key = await this.getEncryptionKey();
+    return CryptoJS.AES.encrypt(data, key).toString();
+  }
+
+  private async decrypt(encryptedData: string): Promise<string> {
+    const key = await this.getEncryptionKey();
+    const bytes = CryptoJS.AES.decrypt(encryptedData, key);
     return bytes.toString(CryptoJS.enc.Utf8);
   }
 
@@ -34,7 +60,7 @@ class EnhancedSecureStorage {
     try {
       const stringValue = JSON.stringify(value);
       const dataWithIntegrity = this.addIntegrityCheck(stringValue);
-      const encryptedValue = this.encrypt(dataWithIntegrity);
+      const encryptedValue = await this.encrypt(dataWithIntegrity);
       localStorage.setItem(`${SECURE_PREFIX}${key}`, encryptedValue);
       
       // Remove any legacy unencrypted version
@@ -51,7 +77,7 @@ class EnhancedSecureStorage {
       // First try to get secure encrypted version
       const encryptedValue = localStorage.getItem(`${SECURE_PREFIX}${key}`);
       if (encryptedValue) {
-        const decryptedPayload = this.decrypt(encryptedValue);
+        const decryptedPayload = await this.decrypt(encryptedValue);
         const data = this.verifyIntegrity(decryptedPayload);
         return data ? JSON.parse(data) : null;
       }
