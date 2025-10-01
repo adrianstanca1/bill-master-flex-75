@@ -22,21 +22,21 @@ const BusinessManager: React.FC = () => {
     revenue: {
       current: totalRevenue,
       target: totalRevenue * 1.2,
-      growth: insights.revenueGrowth
+      growth: insights?.revenueGrowth || 0
     },
     projects: {
       active: activeProjects,
-      completed: Math.floor(dashboardData.performance.deliveryRate || 0),
+      completed: Math.floor((insights?.performance?.score || 0)),
       pending: Math.floor(activeProjects * 0.3)
     },
     team: {
-      utilization: insights.teamUtilization,
+      utilization: insights?.teamUtilization || 0,
       capacity: 100
     },
     financial: {
-      profitMargin: insights.profitMargin,
-      cashFlow: insights.cashFlowHealth,
-      budgetVariance: insights.budgetVariance
+      profitMargin: insights?.profitMargin || 0,
+      cashFlow: insights?.cashFlowHealth || 'healthy',
+      budgetVariance: insights?.budgetVariance || 0
     }
   };
 
@@ -103,12 +103,12 @@ const BusinessManager: React.FC = () => {
             <div className="flex items-center gap-4 mt-4 text-sm">
               <div className="cyber-stat">
                 <span className="text-cyber-primary font-medium">Health Score:</span>
-                <span className="ml-1">{typeof insights.cashFlowHealth === 'number' ? Math.round(insights.cashFlowHealth) : 85}%</span>
+                <span className="ml-1">{typeof insights?.cashFlowHealth === 'number' ? Math.round(insights.cashFlowHealth) : 85}%</span>
               </div>
               <div className="cyber-stat">
                 <span className="text-cyber-primary font-medium">Growth:</span>
-                <span className={cn("ml-1", insights.revenueGrowth >= 0 ? 'text-success' : 'text-destructive')}>
-                  {insights.revenueGrowth > 0 ? '+' : ''}{insights.revenueGrowth.toFixed(1)}%
+                <span className={cn("ml-1", (insights?.revenueGrowth || 0) >= 0 ? 'text-success' : 'text-destructive')}>
+                  {(insights?.revenueGrowth || 0) > 0 ? '+' : ''}{(insights?.revenueGrowth || 0).toFixed(1)}%
                 </span>
               </div>
             </div>

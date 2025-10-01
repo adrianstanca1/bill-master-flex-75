@@ -55,15 +55,17 @@ export function useSecurityEnhancements() {
 
   const logSecurityEvent = async (event: string, details?: any) => {
     try {
-      await supabase.rpc('track_user_activity', {
-        activity_type: event,
-        resource_type: 'security_enhancement',
-        metadata: {
-          ...details,
-          timestamp: new Date().toISOString(),
-          risk_level: securityStatus.riskLevel
-        }
-      });
+      await supabase
+        .from('security_audit_log')
+        .insert([{
+          action: event,
+          resource: 'security_enhancement',
+          details: {
+            ...details,
+            timestamp: new Date().toISOString(),
+            risk_level: securityStatus.riskLevel
+          }
+        }]);
     } catch (error) {
       console.error('Failed to log security event:', error);
     }

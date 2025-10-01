@@ -39,15 +39,18 @@ export function useBruteForceProtection() {
       setIsBlocked(true);
 
       // Log brute force attempt
-      await supabase.rpc('track_user_activity', {
-        activity_type: 'BRUTE_FORCE_DETECTED',
-        resource_type: 'authentication',
-        metadata: { 
-          action,
-          attempt_count: newAttempts,
-          blocked_until: new Date(blockUntil).toISOString()
-        }
-      }).catch(console.error);
+      supabase
+        .from('security_audit_log')
+        .insert([{
+          action: 'BRUTE_FORCE_DETECTED',
+          resource: 'authentication',
+          details: { 
+            action,
+            attempt_count: newAttempts,
+            blocked_until: new Date(blockUntil).toISOString()
+          }
+        }])
+        .then(() => {});
 
       return false;
     }

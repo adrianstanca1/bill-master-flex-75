@@ -64,11 +64,14 @@ export function useSecureValidation() {
     // Log validation attempts to security audit
     if (newErrors.length > 0) {
       newViolations.push(...newErrors.map(e => e.message));
-      await supabase.rpc('track_user_activity', {
-        activity_type: 'VALIDATION_FAILED',
-        resource_type: 'form_validation',
-        metadata: { errors: newErrors }
-      }).catch(console.error);
+      supabase
+        .from('security_audit_log')
+        .insert([{
+          action: 'VALIDATION_FAILED',
+          resource: 'form_validation',
+          details: { errors: JSON.parse(JSON.stringify(newErrors)) }
+        }])
+        .then(() => {});
     }
 
     setErrors(newErrors);

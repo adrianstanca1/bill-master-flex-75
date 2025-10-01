@@ -39,11 +39,13 @@ export function useEnhancedSecurity() {
 
   const logSecurityEvent = async (event: string, details?: any) => {
     try {
-      await supabase.rpc('track_user_activity', {
-        activity_type: event,
-        resource_type: 'security',
-        metadata: details || {}
-      });
+      await supabase
+        .from('security_audit_log')
+        .insert([{
+          action: event,
+          resource: 'security',
+          details: details || {}
+        }]);
     } catch (error) {
       console.error('Failed to log security event:', error);
     }

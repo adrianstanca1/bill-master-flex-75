@@ -26,14 +26,17 @@ export function useSecurityValidation() {
 
     // Log security violations
     if (newViolations.length > 0) {
-      await supabase.rpc('track_user_activity', {
-        activity_type: 'SECURITY_VIOLATION',
-        resource_type: context,
-        metadata: { 
-          violations: newViolations,
-          input_length: input.length 
-        }
-      }).catch(console.error);
+      supabase
+        .from('security_audit_log')
+        .insert([{
+          action: 'SECURITY_VIOLATION',
+          resource: context,
+          details: { 
+            violations: newViolations,
+            input_length: input.length 
+          }
+        }])
+        .then(() => {});
     }
 
     setErrors(newErrors);
