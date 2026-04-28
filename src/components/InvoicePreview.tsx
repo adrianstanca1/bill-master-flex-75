@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Download, Printer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { downloadInvoicePDF } from '@/lib/pdf-engine';
 
 interface InvoicePreviewProps {
   data: InvoiceData;
@@ -15,10 +16,19 @@ export function InvoicePreview({ data, totals, onClose }: InvoicePreviewProps) {
   const { toast } = useToast();
 
   const handleDownload = () => {
-    toast({
-      title: "Download feature",
-      description: "PDF generation requires backend integration. Preview shows the invoice format.",
-    });
+    try {
+      const filename = downloadInvoicePDF(data, totals, { documentType: 'INVOICE' });
+      toast({
+        title: 'PDF downloaded',
+        description: `${filename} has been generated.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'PDF generation failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handlePrint = () => {

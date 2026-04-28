@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
 import { useCompanyId } from '@/hooks/useCompanyId';
 import { secureStorage } from '@/lib/SecureStorage';
+import { downloadInvoicePDF } from '@/lib/pdf-engine';
 
 const itemSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -269,10 +270,23 @@ export function InvoiceGenerator() {
   }
 
   function handleDownloadPDF() {
-    toast({
-      title: "PDF Download",
-      description: "PDF download functionality would be implemented here",
-    });
+    try {
+      const filename = downloadInvoicePDF(values as InvoiceData, totals, {
+        documentType: 'INVOICE',
+        watermark: editingInvoice?.status === 'draft' || !editingInvoice ? 'DRAFT' : undefined,
+      });
+      toast({
+        title: 'PDF generated',
+        description: `${filename} has been downloaded.`,
+      });
+    } catch (error) {
+      console.error('PDF generation failed', error);
+      toast({
+        title: 'PDF generation failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
   }
 
   function handleSendInvoice() {

@@ -49,7 +49,7 @@ class SecurityDataValidator {
   }> {
     const errors: Record<string, string> = {};
     const sanitizedData: Record<string, any> = {};
-    let securityViolations: string[] = [];
+    const securityViolations: string[] = [];
 
     for (const [field, value] of Object.entries(data)) {
       const rule = rules[field];

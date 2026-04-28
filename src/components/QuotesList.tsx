@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { FileText, Edit, Eye, Search, Plus, Send, Download } from 'lucide-react';
 import { QuotePreview } from './QuotePreview';
 import { useToast } from '@/hooks/use-toast';
+import { downloadQuotePDF } from '@/lib/pdf-engine';
 
 interface Quote {
   id: string;
@@ -50,35 +51,24 @@ export function QuotesList({ quotes, isLoading, onCreateNew, onEdit, onConvertTo
 
   const handleDownloadQuote = async (quote: Quote) => {
     try {
-      // Simulate PDF generation and download
-      const quoteData = {
+      const filename = downloadQuotePDF({
+        id: quote.id,
         title: quote.title,
         total: quote.total,
-        items: quote.items,
+        status: quote.status,
         created_at: quote.created_at,
-        status: quote.status
-      };
-      
-      const blob = new Blob([JSON.stringify(quoteData, null, 2)], { 
-        type: 'application/json' 
+        items: quote.items,
       });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `quote-${quote.id}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
+
       toast({
         title: "Download Complete",
-        description: `Quote "${quote.title}" has been downloaded`,
+        description: `${filename} has been downloaded`,
       });
     } catch (error) {
+      console.error('Quote PDF generation failed', error);
       toast({
         title: "Download Failed",
-        description: "Failed to download quote. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to download quote.",
         variant: "destructive"
       });
     }
