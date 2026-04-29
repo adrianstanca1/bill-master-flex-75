@@ -11,7 +11,7 @@ function trimSlash(s: string): string {
   return s.replace(/\/+$/, '');
 }
 
-export function getSupabaseStudioUrl(): string {
+function getSupabaseStudioUrl(): string {
   const explicit = (import.meta.env.VITE_SUPABASE_STUDIO_URL ?? '').trim();
   if (explicit) return trimSlash(explicit);
 
@@ -28,6 +28,11 @@ export function getSupabaseStudioUrl(): string {
   }
 }
 
+function getProjectRef(): string {
+  const ref = (import.meta.env.VITE_SUPABASE_PROJECT_ID ?? '').trim();
+  return ref || 'default';
+}
+
 /**
  * Build a Studio admin URL. Accepts the same path suffix that the legacy
  * Supabase cloud links used (e.g. "auth/settings", "sql/new") so callers
@@ -35,6 +40,8 @@ export function getSupabaseStudioUrl(): string {
  */
 export function studioPath(path: string): string {
   const base = getSupabaseStudioUrl();
+  const ref = getProjectRef();
   const trimmed = path.replace(/^\/+/, '');
-  return trimmed ? `${base}/${trimmed}` : base;
+  const projectBase = `${base}/project/${ref}`;
+  return trimmed ? `${projectBase}/${trimmed}` : projectBase;
 }
