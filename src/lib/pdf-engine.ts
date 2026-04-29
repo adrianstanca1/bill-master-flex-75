@@ -152,10 +152,12 @@ function drawAddresses(doc: jsPDF, data: InvoiceData, theme: PDFTheme, startY: n
     extras: [data.client.contact ? `Attn: ${data.client.contact}` : ''],
   });
 
-  doc.text(fromLines, fromX, startY + 12, { maxWidth: colW });
-  doc.text(toLines, toX, startY + 12, { maxWidth: colW });
+  const fromWrapped = doc.splitTextToSize(fromLines.join('\n'), colW);
+  const toWrapped = doc.splitTextToSize(toLines.join('\n'), colW);
+  doc.text(fromWrapped, fromX, startY + 12);
+  doc.text(toWrapped, toX, startY + 12);
 
-  const rows = Math.max(fromLines.length, toLines.length);
+  const rows = Math.max(fromWrapped.length, toWrapped.length);
   return startY + 12 + rows * 4.5 + 4;
 }
 
@@ -526,13 +528,13 @@ export function quoteToInvoiceData(quote: QuoteLike): InvoiceData {
 
 export function downloadQuotePDF(quote: QuoteLike, options: PDFOptions = {}): string {
   const data = quoteToInvoiceData(quote);
-  const totals = recomputeTotalsFromData(data);
+  const totals = computeTotals(data);
   return downloadInvoicePDF(data, totals, {
-    documentType: 'QUOTE',
-    watermark: quote.status?.toLowerCase() === 'draft' ? 'DRAFT' : undefined,
     showTermsPage: true,
     terms: options.terms || defaultQuoteTerms(),
     ...options,
+    documentType: 'QUOTE',
+    watermark: quote.status?.toLowerCase() === 'draft' ? 'DRAFT' : options.watermark,
   });
 }
 
@@ -544,8 +546,4 @@ export function defaultQuoteTerms(): string[] {
     'Materials and workmanship are guaranteed for 12 months from completion.',
     'Variations to the scope of work will be quoted separately and require written approval.',
   ];
-}
-
-function recomputeTotalsFromData(data: InvoiceData): Totals {
-  return computeTotals(data);
 }
