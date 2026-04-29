@@ -7,6 +7,7 @@ import { Shield, CheckCircle, AlertTriangle, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { secureStorage } from '@/lib/SecureStorage';
+import { studioPath } from '@/lib/supabase-admin';
 
 interface SecurityFix {
   id: string;
@@ -52,7 +53,7 @@ export function SecurityFixesImplemented() {
         status: 'requires_config',
         description: 'Update OTP expiry in Supabase Dashboard',
         severity: 'medium',
-        actionUrl: `https://supabase.com/dashboard/project/zpbuvuxpfemldsknerew/auth/providers`,
+        actionUrl: studioPath(`auth/providers`),
         details: 'Navigate to Auth > Settings and reduce OTP expiry time'
       },
       {
@@ -61,7 +62,7 @@ export function SecurityFixesImplemented() {
         status: 'requires_config',
         description: 'Upgrade PostgreSQL to latest version',
         severity: 'medium',
-        actionUrl: `https://supabase.com/dashboard/project/zpbuvuxpfemldsknerew/settings/general`,
+        actionUrl: studioPath(`settings/general`),
         details: 'Upgrade to receive latest security patches'
       },
       {
@@ -70,7 +71,7 @@ export function SecurityFixesImplemented() {
         status: 'requires_config',
         description: 'Enable leaked password protection',
         severity: 'high',
-        actionUrl: `https://supabase.com/dashboard/project/zpbuvuxpfemldsknerew/auth/providers`,
+        actionUrl: studioPath(`auth/providers`),
         details: 'Enable in Auth > Settings > Security'
       }
     ];

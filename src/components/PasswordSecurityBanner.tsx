@@ -1,6 +1,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Shield, ExternalLink } from 'lucide-react';
+import { studioPath } from '@/lib/supabase-admin';
 
 export function PasswordSecurityBanner() {
   return (
@@ -29,7 +30,7 @@ export function PasswordSecurityBanner() {
             <Button 
               variant="destructive" 
               size="sm" 
-              onClick={() => window.open('https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/settings/auth', '_blank')}
+              onClick={() => window.open(studioPath('settings/auth'), '_blank')}
               className="bg-red-600 hover:bg-red-700"
             >
               <ExternalLink className="h-4 w-4 mr-2" />

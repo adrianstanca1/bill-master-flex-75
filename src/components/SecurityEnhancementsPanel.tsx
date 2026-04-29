@@ -17,6 +17,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { EnhancedSecureStorage } from './EnhancedSecureStorage';
+import { studioPath } from '@/lib/supabase-admin';
 
 interface SecurityEnhancement {
   id: string;
@@ -122,7 +123,7 @@ export function SecurityEnhancementsPanel() {
   };
 
   const openSupabaseAuth = () => {
-    window.open('https://supabase.com/dashboard/project/zwxyoeqsbntsogvgwily/auth/settings', '_blank');
+    window.open(studioPath('auth/settings'), '_blank');
   };
 
   return (

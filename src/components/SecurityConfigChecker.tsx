@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Shield, AlertTriangle, CheckCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { studioPath } from '@/lib/supabase-admin';
 
 interface SecurityCheck {
   id: string;
@@ -28,7 +29,7 @@ export function SecurityConfigChecker() {
           status: 'fail',
           description: 'Currently disabled in Supabase. This is a CRITICAL security risk.',
           action: 'Enable in Supabase Dashboard',
-          actionUrl: 'https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/settings/auth'
+          actionUrl: studioPath('settings/auth')
         },
         {
           id: 'rls-enabled',
