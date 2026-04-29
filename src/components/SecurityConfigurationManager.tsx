@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { studioPath } from '@/lib/supabase-admin';
 import { 
   Shield, 
   AlertTriangle, 
@@ -17,15 +18,15 @@ import {
 
 export function SecurityConfigurationManager() {
   const handleOpenSupabaseAuth = () => {
-    window.open('https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/auth/settings', '_blank');
+    window.open(studioPath('auth/settings'), '_blank');
   };
 
   const handleOpenSupabaseUsers = () => {
-    window.open('https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/auth/users', '_blank');
+    window.open(studioPath('auth/users'), '_blank');
   };
 
   const handleOpenSupabaseFunctions = () => {
-    window.open('https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/functions', '_blank');
+    window.open(studioPath('functions'), '_blank');
   };
 
   const securityChecks = [
@@ -140,7 +141,7 @@ export function SecurityConfigurationManager() {
                 onClick={() => {
                   if (check.link === 'auth/settings') handleOpenSupabaseAuth();
                   else if (check.link === 'functions') handleOpenSupabaseFunctions();
-                  else if (check.link === 'sql') window.open('https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/sql/new', '_blank');
+                  else if (check.link === 'sql') window.open(studioPath('sql/new'), '_blank');
                 }}
                 className="w-full"
               >

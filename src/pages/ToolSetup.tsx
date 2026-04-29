@@ -5,6 +5,7 @@ import { ResponsiveLayout } from "@/components/ResponsiveLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
+import { studioPath } from '@/lib/supabase-admin';
 
 
 export default function ToolSetup() {
@@ -30,11 +31,11 @@ export default function ToolSetup() {
               Get a key: <a className="text-primary hover:underline" href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">OpenAI API Keys</a>
             </li>
             <li>
-              Check logs: <a className="text-primary hover:underline" href={`https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/functions/agent/logs`} target="_blank" rel="noreferrer">Agent Logs</a>
+              Check logs: <a className="text-primary hover:underline" href={studioPath(`functions/agent/logs`)} target="_blank" rel="noreferrer">Agent Logs</a>
               {" • "}
-              <a className="text-primary hover:underline" href={`https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/functions/advisor/logs`} target="_blank" rel="noreferrer">Advisor Logs</a>
+              <a className="text-primary hover:underline" href={studioPath(`functions/advisor/logs`)} target="_blank" rel="noreferrer">Advisor Logs</a>
               {" • "}
-              <a className="text-primary hover:underline" href={`https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/functions/rams/logs`} target="_blank" rel="noreferrer">RAMS Logs</a>
+              <a className="text-primary hover:underline" href={studioPath(`functions/rams/logs`)} target="_blank" rel="noreferrer">RAMS Logs</a>
             </li>
           </ul>
         </CardContent>
@@ -52,7 +53,7 @@ export default function ToolSetup() {
               Learn more: <a className="text-primary hover:underline" href="https://www.firecrawl.dev/" target="_blank" rel="noreferrer">Firecrawl</a>
             </li>
             <li>
-              Check logs: <a className="text-primary hover:underline" href={`https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/functions/tenderbot/logs`} target="_blank" rel="noreferrer">TenderBot Logs</a>
+              Check logs: <a className="text-primary hover:underline" href={studioPath(`functions/tenderbot/logs`)} target="_blank" rel="noreferrer">TenderBot Logs</a>
             </li>
           </ul>
         </CardContent>
@@ -78,7 +79,7 @@ export default function ToolSetup() {
             <li>Enter your Company ID in <Link className="text-primary hover:underline" to="/settings">Settings</Link>.</li>
             <li>Requires you to be signed in. Data access is protected via RLS.</li>
             <li>
-              Check logs: <a className="text-primary hover:underline" href={`https://supabase.com/dashboard/project/tjgbyygllssqsywxpxqe/functions/smartops/logs`} target="_blank" rel="noreferrer">SmartOps Logs</a>
+              Check logs: <a className="text-primary hover:underline" href={studioPath(`functions/smartops/logs`)} target="_blank" rel="noreferrer">SmartOps Logs</a>
             </li>
           </ul>
         </CardContent>

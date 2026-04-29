@@ -8,6 +8,7 @@ import { useEnhancedSecurityLogging } from '@/hooks/useEnhancedSecurityLogging';
 import { useRateLimiting } from '@/hooks/useRateLimiting';
 import { SecurityMonitoringDashboard } from './SecurityMonitoringDashboard';
 import { EnhancedSecurityScanResults } from './EnhancedSecurityScanResults';
+import { studioPath } from '@/lib/supabase-admin';
 
 export function SecurityEnhancementPanel() {
   const { logSecurityEvent } = useEnhancedSecurityLogging();
@@ -43,9 +44,9 @@ export function SecurityEnhancementPanel() {
     });
 
     if (type === 'otp') {
-      window.open('https://supabase.com/dashboard/project/zwxyoeqsbntsogvgwily/auth/settings', '_blank');
+      window.open(studioPath('auth/settings'), '_blank');
     } else if (type === 'password') {
-      window.open('https://supabase.com/dashboard/project/zwxyoeqsbntsogvgwily/auth/settings', '_blank');
+      window.open(studioPath('auth/settings'), '_blank');
     }
   };
 
