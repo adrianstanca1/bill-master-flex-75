@@ -232,7 +232,8 @@ function drawTotals(
 ): number {
   const boxW = 80;
   const boxX = PAGE_WIDTH - PAGE_MARGIN - boxW;
-  let y = startY;
+  // Reserve room for totals rows + Total Due banner so they never split.
+  let y = ensureRoom(doc, startY, 70);
 
   const rows: Array<{ label: string; value: string; emphasis?: 'normal' | 'bold' | 'accent' }> = [
     { label: 'Subtotal', value: formatCurrency(totals.subtotal) },
@@ -301,6 +302,10 @@ function drawNotes(
   }
 
   if (notes.length) {
+    setText(doc, theme.text);
+    doc.setFont('helvetica', 'normal');
+    const wrapped = doc.splitTextToSize(notes.join('\n\n'), CONTENT_WIDTH);
+    y = ensureRoom(doc, y, wrapped.length * 4 + 10);
     setText(doc, theme.muted);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
@@ -309,7 +314,6 @@ function drawNotes(
 
     setText(doc, theme.text);
     doc.setFont('helvetica', 'normal');
-    const wrapped = doc.splitTextToSize(notes.join('\n\n'), CONTENT_WIDTH);
     doc.text(wrapped, PAGE_MARGIN, y + 2);
     y += wrapped.length * 4 + 6;
   }
@@ -324,6 +328,7 @@ function drawNotes(
     if (p.swift) lines.push(`SWIFT: ${p.swift}`);
     if (p.reference) lines.push(`Reference: ${p.reference}`);
     if (lines.length) {
+      y = ensureRoom(doc, y, lines.length * 4 + 10);
       setText(doc, theme.muted);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
@@ -389,6 +394,14 @@ function drawTermsPage(doc: jsPDF, theme: PDFTheme, terms: string[]) {
     doc.text(wrapped, PAGE_MARGIN, y);
     y += wrapped.length * 5 + 2;
   });
+}
+
+function ensureRoom(doc: jsPDF, y: number, needed: number): number {
+  if (y + needed > PAGE_HEIGHT - 22) {
+    doc.addPage();
+    return 20;
+  }
+  return y;
 }
 
 function formatDate(iso: string): string {
