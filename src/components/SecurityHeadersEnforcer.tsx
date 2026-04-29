@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
+import { getSupabaseConnectSources } from '@/lib/csp';
 
 export function SecurityHeadersEnforcer() {
   useEffect(() => {
     const enforceSecurityHeaders = () => {
+      const supabaseConnect = getSupabaseConnectSources();
       // Create meta tags for security headers
       const headers = [
         {
           name: 'Content-Security-Policy',
-          content: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.elevenlabs.io; frame-ancestors 'none';"
+          content: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' ${supabaseConnect} https://api.elevenlabs.io; frame-ancestors 'none';`
         },
         {
           name: 'X-Frame-Options',

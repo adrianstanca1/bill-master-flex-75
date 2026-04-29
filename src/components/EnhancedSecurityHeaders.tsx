@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSecureLogging } from '@/hooks/useSecureLogging';
+import { getSupabaseConnectSources } from '@/lib/csp';
 
 export function EnhancedSecurityHeaders() {
   const { logSecurityEvent } = useSecureLogging();
@@ -8,11 +9,12 @@ export function EnhancedSecurityHeaders() {
   useEffect(() => {
     const enforceEnhancedSecurityHeaders = async () => {
       try {
+        const supabaseConnect = getSupabaseConnectSources();
         // Enhanced Content Security Policy with stricter rules
         const headers = [
           {
             name: 'Content-Security-Policy',
-            content: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.elevenlabs.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;"
+            content: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' ${supabaseConnect} https://api.elevenlabs.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self';`
           },
           {
             name: 'X-Frame-Options',

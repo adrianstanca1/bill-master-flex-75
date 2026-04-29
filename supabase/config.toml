@@ -1,1 +1,3 @@
-project_id = "zpbuvuxpfemldsknerew"
+# Local / self-hosted Supabase configuration. The CLI links to the
+# project under this id; for a self-hosted-only setup any value works.
+project_id = "local"
