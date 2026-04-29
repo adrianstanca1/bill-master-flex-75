@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Download, Send, Edit } from 'lucide-react';
 import { InvoiceData, Totals, formatCurrency } from '@/lib/invoice-calc';
+import { downloadInvoicePDF, openInvoicePDF } from '@/lib/pdf-engine';
+import { Printer } from 'lucide-react';
 
 interface EnhancedInvoicePreviewProps {
   data: InvoiceData;
@@ -14,15 +16,32 @@ interface EnhancedInvoicePreviewProps {
   onSend?: () => void;
 }
 
-export function EnhancedInvoicePreview({ 
-  data, 
-  totals, 
-  onClose, 
-  onEdit, 
-  onDownload, 
-  onSend 
+export function EnhancedInvoicePreview({
+  data,
+  totals,
+  onClose,
+  onEdit,
+  onDownload,
+  onSend
 }: EnhancedInvoicePreviewProps) {
   const companyLogo = localStorage.getItem('company-logo');
+
+  const handleDownloadClick = () => {
+    if (onDownload) return onDownload();
+    try {
+      downloadInvoicePDF(data, totals, { documentType: 'INVOICE' });
+    } catch (error) {
+      console.error('PDF generation failed', error);
+    }
+  };
+
+  const handlePrintClick = () => {
+    try {
+      openInvoicePDF(data, totals, { documentType: 'INVOICE' });
+    } catch (error) {
+      console.error('PDF preview failed', error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-background z-50 overflow-auto">
@@ -37,12 +56,14 @@ export function EnhancedInvoicePreview({
                 Edit
               </Button>
             )}
-            {onDownload && (
-              <Button variant="outline" onClick={onDownload}>
-                <Download className="w-4 h-4 mr-2" />
-                Download PDF
-              </Button>
-            )}
+            <Button variant="outline" onClick={handlePrintClick}>
+              <Printer className="w-4 h-4 mr-2" />
+              Preview PDF
+            </Button>
+            <Button variant="outline" onClick={handleDownloadClick}>
+              <Download className="w-4 h-4 mr-2" />
+              Download PDF
+            </Button>
             {onSend && (
               <Button onClick={onSend}>
                 <Send className="w-4 h-4 mr-2" />

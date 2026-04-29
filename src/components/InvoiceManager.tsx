@@ -9,6 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, FileText, Download, Send, Eye, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useCompanyId } from '@/hooks/useCompanyId';
+import { downloadInvoicePDF } from '@/lib/pdf-engine';
+import type { InvoiceData } from '@/lib/invoice-calc';
+import { computeTotals } from '@/lib/invoice-calc';
 
 interface InvoiceItem {
   description: string;
@@ -192,11 +195,43 @@ export const InvoiceManager: React.FC = () => {
   };
 
   const handleDownloadInvoice = (invoice: Invoice) => {
-    console.log('Downloading invoice:', invoice.id);
-    toast({
-      title: "Download Started",
-      description: `Downloading ${invoice.number} as PDF`,
-    });
+    try {
+      const data: InvoiceData = {
+        company: {
+          name: 'Your Company',
+          address: '',
+        },
+        client: {
+          name: invoice.client,
+          address: '',
+        },
+        invoice: {
+          number: invoice.number,
+          date: new Date().toISOString().slice(0, 10),
+          dueDate: invoice.dueDate,
+        },
+        items: invoice.items.map((it) => ({
+          description: it.description,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+        })),
+        vatMode: 'STANDARD_20',
+      };
+      const filename = downloadInvoicePDF(data, computeTotals(data), {
+        documentType: 'INVOICE',
+        watermark: invoice.status === 'draft' ? 'DRAFT' : undefined,
+      });
+      toast({
+        title: 'PDF downloaded',
+        description: `${filename} has been downloaded.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Download failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleSendInvoice = (invoice: Invoice) => {
